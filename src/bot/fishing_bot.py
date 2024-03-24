@@ -10,14 +10,13 @@ class FishingBot:
         self.fish_bite_detector = FishBiteDetector()
 
     def start_fishing(self):
+        print("Waiting for fishing to start...")
         while True:
-            # Move to a fishing spot and cast the line
-            self.game_interaction.move_to_fishing_spot()
-            self.game_interaction.cast_fishing_line()
-
             # Wait for a fish bite using sound detection
             while not self.fish_bite_detector.detect_fish_bite():
                 time.sleep(0.1)  # Small delay to avoid excessive CPU usage
+
+            print("Fishing minigame started!")
 
             # Start the fishing minigame
             while True:
