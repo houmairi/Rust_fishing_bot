@@ -1,6 +1,7 @@
 import pyautogui
 import time
 import mss
+import mss.tools
 import numpy as np
 import win32gui
 
@@ -8,6 +9,22 @@ class GameInteraction:
     def __init__(self, game_window_title):
         self.game_window_title = game_window_title
         self.sct = mss.mss()
+
+    def is_game_running(self):
+        window_handle = win32gui.FindWindow(None, self.game_window_title)
+        return window_handle != 0
+
+    def capture_game_screen(self):
+        window_handle = win32gui.FindWindow(None, self.game_window_title)
+        if window_handle == 0:
+            return None
+
+        window_rect = win32gui.GetWindowRect(window_handle)
+        monitor = {"top": window_rect[1], "left": window_rect[0], "width": window_rect[2] - window_rect[0], "height": window_rect[3] - window_rect[1]}
+        
+        screen_shot = self.sct.grab(monitor)
+        img = np.array(screen_shot)
+        return img
 
     def focus_game_window(self):
         # Find the game window by its title
