@@ -1,0 +1,3 @@
+pyaudio
+librosa
+numpy
