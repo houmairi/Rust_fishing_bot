@@ -72,8 +72,25 @@ class FishBiteDetector:
     def _compute_similarity(self, audio_segment):
         try:
             audio_segment = librosa.util.normalize(audio_segment)
-            correlation = np.correlate(audio_segment, self.sound_data, mode='valid')
-            similarity = np.max(correlation) / np.sqrt(np.sum(audio_segment ** 2) * np.sum(self.sound_data ** 2))
+            
+            # Ensure the lengths of audio_segment and sound_data match
+            if len(audio_segment) < len(self.sound_data):
+                # Pad audio_segment with zeros to match the length of sound_data
+                audio_segment = np.pad(audio_segment, (0, len(self.sound_data) - len(audio_segment)), mode='constant')
+            elif len(audio_segment) > len(self.sound_data):
+                # Truncate audio_segment to match the length of sound_data
+                audio_segment = audio_segment[:len(self.sound_data)]
+            
+            # Compute cross-correlation using FFT
+            correlation = np.fft.irfft(np.fft.rfft(audio_segment) * np.conj(np.fft.rfft(self.sound_data)))
+            
+            # Find the maximum correlation value and its index
+            max_correlation = np.max(correlation)
+            max_index = np.argmax(correlation)
+            
+            # Compute the similarity score
+            similarity = max_correlation / np.sqrt(np.sum(audio_segment ** 2) * np.sum(self.sound_data ** 2))
+            
             return similarity
         except Exception as e:
             print(f"Error in similarity computation: {str(e)}")
