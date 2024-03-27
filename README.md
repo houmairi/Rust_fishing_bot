@@ -95,22 +95,8 @@ Stay tuned for updates and further enhancements to the Fishing Bot project!
 2. The bot will automatically detect the game window and start the fishing process when a fish bite is detected.
 3. Observe the bot's performance and monitor the console output for any relevant information or errors.
 
-## Contributing
-
-Contributions to the Fishing Bot project are welcome! If you have any ideas, suggestions, or bug reports, please open an issue on the GitHub repository. If you'd like to contribute code, please fork the repository and submit a pull request with your changes.
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Contact
-
-For any questions or inquiries, please contact the project maintainer:
-
-- Name: [Your Name]
-- Email: [Your Email]
-- GitHub: [Your GitHub Profile]
-
-Feel free to reach out with any feedback or suggestions!
 
 Happy fishing!
