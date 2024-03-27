@@ -44,6 +44,9 @@ class FishBiteDetector:
             sf.write(file=output_file, data=data[:, 0], samplerate=self.sample_rate)
         print(f"Recorded audio saved to: {output_file}")
 
+    #two steps i can do to increase the comparison 
+    #We gather audio files that represent the sound cue we want to detect. These audio files serve as training examples for the system.
+    #Audio Enhancement: Apply audio enhancement techniques to the recorded audio segments before similarity comparison. This can include noise reduction, equalization, or filtering to emphasize the relevant frequencies of the sound cue. By improving the signal-to-noise ratio and reducing the impact of background noise, you can enhance the accuracy of the sound cue detection.
     def _record_and_detect_audio(self):
         with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=self.sample_rate) as mic:
             print("Starting audio detection from speakers...")
