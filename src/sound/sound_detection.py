@@ -3,18 +3,26 @@ import soundfile as sf
 import numpy as np
 import librosa
 import threading
+import os
 
 class FishBiteDetector:
     def __init__(self):
-        sound_file = "..\\..\\data\\fishing_data\\fishing_sequences\\fishOnTheHook_cue.wav"
-        self.sound_data, self.sample_rate = librosa.load(sound_file)
-        self.sound_data = librosa.util.normalize(self.sound_data)
+        reference_dir = "..\\..\\data\\fishing_data\\fishing_sequences"
+        self.reference_sounds = []
+        self.sample_rate = None
+        
+        for file in os.listdir(reference_dir):
+            if file.endswith(".wav"):
+                sound_file = os.path.join(reference_dir, file)
+                sound_data, sample_rate = librosa.load(sound_file)
+                sound_data = librosa.util.normalize(sound_data)
+                self.reference_sounds.append(sound_data)
+                print(f"Loaded reference sound file: {sound_file}")
+                
+                if self.sample_rate is None:
+                    self.sample_rate = sample_rate
+        
         self.on_sound_cue_recognized = None
-        
-        print(f"Loaded sound file: {sound_file}")
-        print(f"Sound data shape: {self.sound_data.shape}")
-        print(f"Sample rate: {self.sample_rate}")
-        
         self.is_running = True
         self.audio_thread = None
         self.buffer_size = int(self.sample_rate * 1.0)  # Buffer size of 1 second
@@ -73,25 +81,30 @@ class FishBiteDetector:
         try:
             audio_segment = librosa.util.normalize(audio_segment)
             
-            # Ensure the lengths of audio_segment and sound_data match
-            if len(audio_segment) < len(self.sound_data):
-                # Pad audio_segment with zeros to match the length of sound_data
-                audio_segment = np.pad(audio_segment, (0, len(self.sound_data) - len(audio_segment)), mode='constant')
-            elif len(audio_segment) > len(self.sound_data):
-                # Truncate audio_segment to match the length of sound_data
-                audio_segment = audio_segment[:len(self.sound_data)]
+            max_similarity = 0.0
             
-            # Compute cross-correlation using FFT
-            correlation = np.fft.irfft(np.fft.rfft(audio_segment) * np.conj(np.fft.rfft(self.sound_data)))
+            for reference_sound in self.reference_sounds:
+                # Ensure the lengths of audio_segment and reference_sound match
+                if len(audio_segment) < len(reference_sound):
+                    # Pad audio_segment with zeros to match the length of reference_sound
+                    audio_segment = np.pad(audio_segment, (0, len(reference_sound) - len(audio_segment)), mode='constant')
+                elif len(audio_segment) > len(reference_sound):
+                    # Truncate audio_segment to match the length of reference_sound
+                    audio_segment = audio_segment[:len(reference_sound)]
+                
+                # Compute cross-correlation using FFT
+                correlation = np.fft.irfft(np.fft.rfft(audio_segment) * np.conj(np.fft.rfft(reference_sound)))
+                
+                # Find the maximum correlation value
+                max_correlation = np.max(correlation)
+                
+                # Compute the similarity score
+                similarity = max_correlation / np.sqrt(np.sum(audio_segment ** 2) * np.sum(reference_sound ** 2))
+                
+                # Update the maximum similarity score
+                max_similarity = max(max_similarity, similarity)
             
-            # Find the maximum correlation value and its index
-            max_correlation = np.max(correlation)
-            max_index = np.argmax(correlation)
-            
-            # Compute the similarity score
-            similarity = max_correlation / np.sqrt(np.sum(audio_segment ** 2) * np.sum(self.sound_data ** 2))
-            
-            return similarity
+            return max_similarity
         except Exception as e:
             print(f"Error in similarity computation: {str(e)}")
             return 0.0  # Return a default value (e.g., 0.0) in case of an error
