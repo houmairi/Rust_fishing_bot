@@ -1,8 +1,9 @@
+import wave
 import numpy as np
 import librosa
 import pyaudio
 import threading
-import time
+from collections import deque
 
 class FishBiteDetector:
     def __init__(self, game_window_title):
@@ -19,12 +20,8 @@ class FishBiteDetector:
         self.is_running = True
         self.audio_thread = None
         self.device_index = None
-
-    def start_detection(self, device_index):
-        self.device_index = device_index
-        self.is_running = True
-        self.audio_thread = threading.Thread(target=self._record_and_detect_audio)
-        self.audio_thread.start()
+        self.buffer_size = int(self.sample_rate * 1.0)  # Buffer size of 1 second
+        self.ring_buffer = deque(maxlen=self.buffer_size)
 
     def stop_detection(self):
         self.is_running = False
@@ -51,7 +48,9 @@ class FishBiteDetector:
         # in the _record_and_detect_audio method
         return False
     
-    def save_recorded_audio(self, audio_data, output_file):
+    def save_recorded_audio(self, output_file):
+        audio_data = np.concatenate(self.audio_frames)
+        
         # Convert audio data to int16 format
         audio_data = (audio_data * 32767).astype(np.int16)
 
@@ -64,7 +63,7 @@ class FishBiteDetector:
 
         print(f"Recorded audio saved to: {output_file}")
 
-    def _record_and_detect_audio(self, sample_rate=44100, channels=1):
+    def _record_and_detect_audio(self, output_file, sample_rate=44100, channels=1):
         p = pyaudio.PyAudio()
         chunk_size = 1024
 
@@ -72,39 +71,63 @@ class FishBiteDetector:
             print("No audio input device specified. Please provide a valid device index.")
             return
 
-        # Open the audio stream with the selected device
-        stream = p.open(format=pyaudio.paFloat32,
-                        channels=channels,
-                        rate=sample_rate,
-                        input=True,
-                        input_device_index=self.device_index,
-                        frames_per_buffer=chunk_size)
+        try:
+            # Open the audio stream with the selected device
+            stream = p.open(format=pyaudio.paFloat32,
+                            channels=channels,
+                            rate=sample_rate,
+                            input=True,
+                            input_device_index=self.device_index,
+                            frames_per_buffer=chunk_size)
 
-        print(f"Starting audio detection on device: {p.get_device_info_by_index(self.device_index)['name']}")
+            print(f"Starting audio detection on device: {p.get_device_info_by_index(self.device_index)['name']}")
 
-        while self.is_running:
-            data = stream.read(chunk_size)
-            audio_segment = np.frombuffer(data, dtype=np.float32)
+            self.audio_frames = []
 
-            similarity = self._compute_similarity(audio_segment)
-            time.sleep(1)
-            print(f"Similarity: {similarity:.2f}")
+            while self.is_running:
+                data = stream.read(chunk_size)
+                audio_segment = np.frombuffer(data, dtype=np.float32)
 
-            threshold = 0.2
-            if similarity >= threshold:
-                    print(f"Fish bite detected! Similarity: {similarity:.2f}")
-                    if self.on_sound_cue_recognized:
-                        self.on_sound_cue_recognized()
-                        
-        # Save the recorded audio to a file
-        audio_data = np.concatenate(audio_frames)
-        self.save_recorded_audio(audio_data, output_file)
+                # Append audio segment to the ring buffer
+                self.ring_buffer.extend(audio_segment)
 
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+                # Append audio segment to the list of frames
+                self.audio_frames.append(audio_segment)
 
-        print("Audio detection stopped.")
+                # Check if the buffer has enough data for processing
+                if len(self.ring_buffer) == self.buffer_size:
+                    # Convert the ring buffer to a numpy array
+                    audio_data = np.array(self.ring_buffer)
+
+                    # Process the audio data
+                    similarity = self._compute_similarity(audio_data)
+                    if similarity is not None:
+                        print(f"Similarity: {similarity:.2f}")
+
+                        threshold = 0.8
+                        if similarity >= threshold:
+                            print(f"Fish bite detected! Similarity: {similarity:.2f}")
+                            if self.on_sound_cue_recognized:
+                                self.on_sound_cue_recognized()
+
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+
+            # Save the recorded audio to a file
+            self.save_recorded_audio(output_file)
+
+            print("Audio detection stopped.")
+
+        except OSError as e:
+            print(f"Error occurred while opening the audio stream: {str(e)}")
+            print("Please check the audio device settings and ensure the selected device is valid.")
+        
+    def start_detection(self, device_index, output_file):
+        self.device_index = device_index
+        self.is_running = True
+        self.audio_thread = threading.Thread(target=self._record_and_detect_audio, args=(output_file,))
+        self.audio_thread.start()
 
     def _compute_similarity(self, audio_segment):        
         try:
