@@ -7,7 +7,8 @@ import os
 
 class FishBiteDetector:
     def __init__(self):
-        reference_dir = "..\\..\\data\\fishing_data\\fishing_sequences"
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        reference_dir = os.path.join(project_root, "data", "fishing_data", "fishing_sequences")
         self.reference_sounds = []
         self.sample_rate = None
         

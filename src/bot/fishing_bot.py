@@ -1,39 +1,26 @@
-import time
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, project_root)
+
 from src.bot.game_interaction import GameInteraction
-from src.ml.model_inference import FishingPredictor
+from src.ml.model_training import train_model
+from src.video.video_processing import detect_fish_movement, detect_rod_shake
 from src.sound.sound_detection import FishBiteDetector
 
 class FishingBot:
     def __init__(self):
         self.game_interaction = GameInteraction()
-        self.fishing_predictor = FishingPredictor()
         self.fish_bite_detector = FishBiteDetector()
+        self.fish_bite_detector.on_sound_cue_recognized = self.on_fish_bite_detected
 
     def start_fishing(self):
-        print("Waiting for fishing to start...")
-        while True:
-            # Wait for a fish bite using sound detection
-            while not self.fish_bite_detector.detect_fish_bite():
-                time.sleep(0.1)  # Small delay to avoid excessive CPU usage
+        self.game_interaction.start_game()
+        self.fish_bite_detector.start_detection()
 
-            print("Fishing minigame started!")
+    def on_fish_bite_detected(self):
+        self.game_interaction.perform_action("press_s")
 
-            # Start the fishing minigame
-            while True:
-                # Observe the fish movement and rod shake
-                fish_movement, rod_shake = self.game_interaction.observe_fishing_state()
-
-                # Predict the appropriate counter-movement using the ML model
-                counter_movement = self.fishing_predictor.predict(fish_movement, rod_shake)
-
-                # Perform the counter-movement in the game
-                self.game_interaction.perform_action(counter_movement)
-
-                # Check if the fish is caught or unhooked
-                if self.game_interaction.is_fish_caught():
-                    break
-                elif self.game_interaction.is_fish_unhooked():
-                    break
-
-            # Small delay before checking for the next fishing spot
-            time.sleep(1)
+    def stop_fishing(self):
+        self.fish_bite_detector.stop_detection()
+        self.game_interaction.stop_game()
