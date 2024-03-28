@@ -55,21 +55,29 @@ This project aims to develop an automated fishing bot for the game "Rust" using 
 
 The following decision tree represents the counter-movement prediction process based on the observed fishing state:
 
-```
-                              Fish Detected
-                                    |
-                     ______________|______________
-                    |                              |
-            Fish Moving Left                Fish Moving Right
-                    |                              |
-         ___________|___________          _________|_________
-        |                       |        |                   |
- Rod Shake < 50         Rod Shake >= 50   Rod Shake < 50   Rod Shake >= 50
-        |                       |        |                   |
-  ______|______           ______|______  |               _____|_____
- |             |         |             | |              |           |
-Hold "D"   Release "D"  Hold "S"   Release "S"       Hold "A"   Release "A"
-```
+:::mermaid
+graph TD;
+    A[Fish Detected] --> B{Is the fish moving?};
+    B -->|Yes| C{Moving Left or Right?};
+    C -->|Left| D{Rod Shake < 50?};
+    C -->|Right| E{Rod Shake < 50?};
+    B -->|No| F{Rod Shake < 50?};
+    
+    D -->|Yes| G[Hold 'D'];
+    D -->|No| H[Release 'D'];
+    H --> I{Rod Shake >= 50?};
+    I -->|Yes| J[Hold 'S'];
+    I -->|No| K[Release 'S'];
+    
+    E -->|Yes| L[Hold 'A'];
+    E -->|No| M[Release 'A'];
+    M --> N{Rod Shake >= 50?};
+    N -->|Yes| O[Hold 'S'];
+    N -->|No| P[Release 'S'];
+    
+    F -->|Yes| Q[Hold 'S'];
+    F -->|No| R[Rod may break];
+:::
 
 The decision tree illustrates the key decision points and counter-movements based on the fish's movement direction and the intensity of the rod shake. The machine learning model will learn these decision rules from the labeled training data and make predictions accordingly during the fishing minigame.
 
@@ -95,22 +103,8 @@ Stay tuned for updates and further enhancements to the Fishing Bot project!
 2. The bot will automatically detect the game window and start the fishing process when a fish bite is detected.
 3. Observe the bot's performance and monitor the console output for any relevant information or errors.
 
-## Contributing
-
-Contributions to the Fishing Bot project are welcome! If you have any ideas, suggestions, or bug reports, please open an issue on the GitHub repository. If you'd like to contribute code, please fork the repository and submit a pull request with your changes.
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Contact
-
-For any questions or inquiries, please contact the project maintainer:
-
-- Name: [Your Name]
-- Email: [Your Email]
-- GitHub: [Your GitHub Profile]
-
-Feel free to reach out with any feedback or suggestions!
 
 Happy fishing!
