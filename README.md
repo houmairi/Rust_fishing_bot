@@ -55,7 +55,7 @@ This project aims to develop an automated fishing bot for the game "Rust" using 
 
 The following decision tree represents the counter-movement prediction process based on the observed fishing state:
 
-:::mermaid
+```mermaid
 graph TD;
     A[Fish Detected] --> B{Is the fish moving?};
     B -->|Yes| C{Moving Left or Right?};
@@ -77,7 +77,7 @@ graph TD;
     
     F -->|Yes| Q[Hold 'S'];
     F -->|No| R[Rod may break];
-:::
+```
 
 The decision tree illustrates the key decision points and counter-movements based on the fish's movement direction and the intensity of the rod shake. The machine learning model will learn these decision rules from the labeled training data and make predictions accordingly during the fishing minigame.
 
