@@ -11,13 +11,13 @@ from src.bot.game_interaction import GameInteraction
 from sound_detection import FishBiteDetector
 
 def main():
-    game_window_title = "Rust"  # Replace with the actual game window title
+    game_window_title = "Rust"
     game_interaction = GameInteraction(game_window_title)
     fish_bite_detector = FishBiteDetector()
-    
+
     print("Recording the first 10 seconds of audio...")
     fish_bite_detector.record_audio(duration=10, output_file="recorded_audio.wav")
-    
+
     print("Starting audio detection...")
     fish_bite_detector.start_detection()
 
@@ -28,6 +28,7 @@ def main():
     def on_sound_cue_recognized():
         sound_cue_recognized.set()
         print("Sound cue recognized! Fishing minigame started.")
+        #game_interaction.perform_action("press_s")
 
     # Register the callback function in the FishBiteDetector
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
