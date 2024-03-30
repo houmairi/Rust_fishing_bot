@@ -1,1 +1,3 @@
-src/sound/recorded_audio.wav
+src/sound/*.wav
+data/fishing_data/fishing_sequences/*.wav
+src/*.wav
