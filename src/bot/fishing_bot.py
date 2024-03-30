@@ -17,8 +17,8 @@ class FishingBot:
         self.is_running = True
         print("Fishing bot started. Press 'Esc' to stop.")
         self.game_interaction.start_game()
-        self.fish_bite_detector.start_detection()
         self.game_recognition_loop()
+        self.fish_bite_detector.start_detection()
 
     def on_fish_bite_detected(self, similarity):
         if self.is_running and similarity >= 0.8:
@@ -28,8 +28,9 @@ class FishingBot:
     def stop_fishing(self):
         self.is_running = False
         self.fish_bite_detector.stop_detection()
-        while self.fish_bite_detector.audio_thread.is_alive():
-            time.sleep(0.1)  # Wait for the audio detection thread to stop
+        if self.fish_bite_detector.audio_thread is not None:
+            while self.fish_bite_detector.audio_thread.is_alive():
+                time.sleep(0.1)  # Wait for the audio detection thread to stop
         self.game_interaction.stop_game()
 
     def game_recognition_loop(self):

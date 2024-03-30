@@ -51,9 +51,14 @@ def main():
             time.sleep(1)  # Keep the main thread running
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Stopping fishing bot.")
+    except AttributeError as e:
+        print(f"AttributeError occurred: {str(e)}")
     finally:
-        fishing_bot.stop_fishing()
-        fish_bite_detector.stop_detection()
+        try:
+            fishing_bot.stop_fishing()
+            fish_bite_detector.stop_detection()
+        except AttributeError:
+            pass
 
 if __name__ == "__main__":
     main()
