@@ -4,11 +4,13 @@ import mss
 import mss.tools
 import numpy as np
 import win32gui
+from pynput.keyboard import Controller as KeyboardController, Key
 
 class GameInteraction:
     def __init__(self, game_window_title=None):
         self.game_window_title = game_window_title
         self.sct = mss.mss()
+        self.keyboard = KeyboardController()
 
     def is_game_running(self):
         if self.game_window_title is None:
@@ -48,7 +50,7 @@ class GameInteraction:
         if game_window:
             # Bring the game window to the foreground
             win32gui.SetForegroundWindow(game_window)
-            time.sleep(0.5)  # Wait for the window to be activated
+            # time.sleep(0.5)  # Wait for the window to be activated
         else:
             raise Exception("Game window not found.")
 
@@ -62,8 +64,10 @@ class GameInteraction:
 
     def perform_action(self, action):
         if action == "press_s":
-            #pyautogui.press('s')
-            print("perform action :I")
+            self.focus_game_window()
+            self.keyboard.press(Key.space)  # Press the spacebar key
+            self.keyboard.release(Key.space)  # Release the spacebar key
+            print("Perform action: press 's'")
 
     def is_fishing_finished(self):
         # Check if the fishing is finished
@@ -77,12 +81,12 @@ class GameInteraction:
     def move_to_fishing_spot(self, spot_coordinates):
         self.focus_game_window()
         # Move the mouse to the specified fishing spot coordinates
-        pyautogui.moveTo(spot_coordinates[0], spot_coordinates[1])
+        # pyautogui.moveTo(spot_coordinates[0], spot_coordinates[1])
 
     def cast_fishing_line(self):
         self.focus_game_window()
         # Perform the action to cast the fishing line
-        pyautogui.click(button='right')
+        # pyautogui.click(button='right')
 
     def observe_fishing_state(self):
         self.focus_game_window()

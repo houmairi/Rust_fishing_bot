@@ -22,8 +22,8 @@ class FishingBot:
 
     def on_fish_bite_detected(self, similarity):
         if self.is_running and similarity >= 0.8:
-            #self.game_interaction.perform_action("press_s")
-            print("test")
+            # self.game_interaction.perform_action("press_s")
+            print("Fish bite detected")
 
     def stop_fishing(self):
         self.is_running = False
