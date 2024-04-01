@@ -50,7 +50,7 @@ class GameInteraction:
         if game_window:
             # Bring the game window to the foreground
             win32gui.SetForegroundWindow(game_window)
-            # time.sleep(0.5)  # Wait for the window to be activated
+            time.sleep(0.5)  # Wait for the window to be activated
         else:
             raise Exception("Game window not found.")
 
@@ -75,8 +75,19 @@ class GameInteraction:
         return False
 
     def stop_game(self):
-        # Implement the logic to stop the game
-        pass
+        print("Stopping the game...")
+        
+        # Bring the game window to the foreground
+        self.focus_game_window()
+        
+        # Send the key combination to close the game window
+        pyautogui.hotkey('alt', 'f4')
+        
+        # Wait for the game window to close
+        while self.is_game_running():
+            time.sleep(1)
+        
+        print("Game stopped.")
 
     def move_to_fishing_spot(self, spot_coordinates):
         self.focus_game_window()

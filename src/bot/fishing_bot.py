@@ -16,7 +16,7 @@ class FishingBot:
     def start_fishing(self):
         self.is_running = True
         print("Fishing bot started. Press 'Esc' to stop.")
-        self.game_interaction.start_game()
+        #self.game_interaction.start_game()
         self.game_recognition_loop()
         self.fish_bite_detector.start_detection()
 
@@ -31,7 +31,7 @@ class FishingBot:
         if self.fish_bite_detector.audio_thread is not None:
             while self.fish_bite_detector.audio_thread.is_alive():
                 time.sleep(0.1)  # Wait for the audio detection thread to stop
-        self.game_interaction.stop_game()
+        #self.game_interaction.stop_game()  # Call the stop_game method
 
     def game_recognition_loop(self):
         while self.is_running:

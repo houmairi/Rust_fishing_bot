@@ -46,7 +46,7 @@ class FishBiteDetector():
         self.on_sound_cue_recognized = None
         self.is_running = True
         self.audio_thread = None
-        self.buffer_size = int(self.sample_rate * 1.0)  # Buffer size of 1 second
+        self.buffer_size = int(self.sample_rate * 0.5)  # Buffer size
 
     def start_detection(self):
         self.is_running = True

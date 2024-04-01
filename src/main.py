@@ -16,8 +16,8 @@ def main():
     fishing_bot = FishingBot(game_interaction)
     fish_bite_detector = FishBiteDetector()
 
-    print("Recording the first 10 seconds of audio...")
-    fish_bite_detector.record_audio(duration=10, output_file="recorded_audio.wav")
+    #print("Recording the first 10 seconds of audio...")
+    #fish_bite_detector.record_audio(duration=10, output_file="recorded_audio.wav")
 
     print("Starting audio detection...")
     fish_bite_detector.start_detection()
