@@ -57,24 +57,24 @@ The following decision tree represents the counter-movement prediction process b
 
 ```mermaid
 graph TD;
-    A[Fish Detected] --> B{Is the fish moving?};
+    A[Fish Detected] --> S[Press 'S'] --> B{Is the fish moving?};
     B -->|Yes| C{Moving Left or Right?};
     C -->|Left| D{Rod Shake < 50?};
     C -->|Right| E{Rod Shake < 50?};
     B -->|No| F{Rod Shake < 50?};
-    
+   
     D -->|Yes| G[Hold 'D'];
     D -->|No| H[Release 'D'];
     H --> I{Rod Shake >= 50?};
     I -->|Yes| J[Hold 'S'];
     I -->|No| K[Release 'S'];
-    
+   
     E -->|Yes| L[Hold 'A'];
     E -->|No| M[Release 'A'];
     M --> N{Rod Shake >= 50?};
     N -->|Yes| O[Hold 'S'];
     N -->|No| P[Release 'S'];
-    
+   
     F -->|Yes| Q[Hold 'S'];
     F -->|No| R[Rod may break];
 ```
