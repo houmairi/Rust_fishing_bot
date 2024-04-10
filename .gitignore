@@ -1,3 +1,4 @@
 src/sound/*.wav
 data/fishing_data/fishing_sequences/*.wav
 src/*.wav
+src/fishing_sequences
