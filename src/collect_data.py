@@ -4,40 +4,53 @@ import time
 import json
 import numpy as np
 from pynput import keyboard
+from mss import mss
 
 class FishingSequenceRecorder:
     def __init__(self, output_dir, sequence_name, duration):
         self.output_dir = output_dir
         self.sequence_name = sequence_name
         self.duration = duration
-        self.cap = None
         self.out = None
         self.annotations = []
         self.start_time = 0
         self.listener = None
+        self.sct = mss()
+        self.pressed_keys = set()
 
     def on_press(self, key):
         if key == keyboard.Key.esc:
             return False
         try:
             current_time = time.time() - self.start_time
-            self.annotations.append({"timestamp": current_time, "action": key.char})
+            key_char = key.char
+            if key_char not in self.pressed_keys:
+                self.annotations.append({"timestamp": current_time, "action": f"press_{key_char}"})
+                self.pressed_keys.add(key_char)
+        except AttributeError:
+            pass
+
+    def on_release(self, key):
+        try:
+            current_time = time.time() - self.start_time
+            key_char = key.char
+            if key_char in self.pressed_keys:
+                self.annotations.append({"timestamp": current_time, "action": f"release_{key_char}"})
+                self.pressed_keys.remove(key_char)
         except AttributeError:
             pass
 
     def record(self):
-        self.cap = cv2.VideoCapture(0)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.out = cv2.VideoWriter(os.path.join(self.output_dir, f"{self.sequence_name}.mp4"), fourcc, 30.0, (640, 480))
+        self.out = cv2.VideoWriter(os.path.join(self.output_dir, f"{self.sequence_name}.mp4"), fourcc, 30.0, (1920, 1080))
 
         self.start_time = time.time()
-        self.listener = keyboard.Listener(on_press=self.on_press)
+        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
         while time.time() - self.start_time < self.duration:
-            ret, frame = self.cap.read()
-            if not ret:
-                break
+            img = np.array(self.sct.grab(self.sct.monitors[1]))
+            frame = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
 
             self.out.write(frame)
 
@@ -45,7 +58,6 @@ class FishingSequenceRecorder:
             if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to stop recording
                 break
 
-        self.cap.release()
         self.out.release()
         cv2.destroyAllWindows()
 
