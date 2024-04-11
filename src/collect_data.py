@@ -17,6 +17,7 @@ class FishingSequenceRecorder:
         self.listener = None
         self.sct = mss()
         self.pressed_keys = set()
+        self.special_keys = set()
 
     def on_press(self, key):
         if key == keyboard.Key.esc:
@@ -33,10 +34,12 @@ class FishingSequenceRecorder:
                     self.annotations.append({"timestamp": current_time, "event": "Fish goes Left"})
                 elif key_char == 'p':
                     self.annotations.append({"timestamp": current_time, "event": "Fish goes Right"})
-                elif key_char == 'o':
+                elif key_char == 'o' and 'o' not in self.special_keys:
                     self.annotations.append({"timestamp": current_time, "event": "Fishing Rod shakes over 50%"})
-                elif key_char == 'k':
-                    self.annotations.append({"timestamp": current_time, "event": "Fishing Rod breaks"}) 
+                    self.special_keys.add('o')
+                elif key_char == 'k' and 'k' not in self.special_keys:
+                    self.annotations.append({"timestamp": current_time, "event": "Fish got away"})
+                    self.special_keys.add('k')
         except AttributeError:
             pass
 
@@ -45,7 +48,8 @@ class FishingSequenceRecorder:
             current_time = time.time() - self.start_time
             key_char = key.char
             if key_char in self.pressed_keys:
-                self.annotations.append({"timestamp": current_time, "action": f"release_{key_char}"})
+                if key_char not in ['o', 'k']:  # Exclude 'O' and 'K' from release events
+                    self.annotations.append({"timestamp": current_time, "action": f"release_{key_char}"})
                 self.pressed_keys.remove(key_char)
         except AttributeError:
             pass
