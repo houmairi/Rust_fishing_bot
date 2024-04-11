@@ -27,6 +27,16 @@ class FishingSequenceRecorder:
             if key_char not in self.pressed_keys:
                 self.annotations.append({"timestamp": current_time, "action": f"press_{key_char}"})
                 self.pressed_keys.add(key_char)
+                
+                # Annotate specific events
+                if key_char == 'l':
+                    self.annotations.append({"timestamp": current_time, "event": "Fish goes Left"})
+                elif key_char == 'p':
+                    self.annotations.append({"timestamp": current_time, "event": "Fish goes Right"})
+                elif key_char == 'o':
+                    self.annotations.append({"timestamp": current_time, "event": "Fishing Rod shakes over 50%"})
+                elif key_char == 'k':
+                    self.annotations.append({"timestamp": current_time, "event": "Fishing Rod breaks"}) 
         except AttributeError:
             pass
 
