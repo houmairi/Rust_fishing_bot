@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
@@ -27,10 +28,12 @@ class FishingBot:
 
     def stop_fishing(self):
         self.is_running = False
-        self.fish_bite_detector.stop_detection()
-        if self.fish_bite_detector.audio_thread is not None:
-            while self.fish_bite_detector.audio_thread.is_alive():
-                time.sleep(0.1)  # Wait for the audio detection thread to stop
+        try:
+            if self.fish_bite_detector.audio_thread is not None:
+                while self.fish_bite_detector.audio_thread.is_alive():
+                    time.sleep(0.1)  # Wait for the audio detection thread to stop
+        except AttributeError:
+            pass
         #self.game_interaction.stop_game()  # Call the stop_game method
 
     def game_recognition_loop(self):

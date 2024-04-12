@@ -133,13 +133,13 @@ class FishBiteDetector():
         # Apply adaptive noise reduction
         noise_reduced_audio = self._reduce_noise(audio_data, sound_cue_data)
         
-        # Apply normalization
-        normalized_audio = librosa.util.normalize(noise_reduced_audio)
-        
         # Check for non-finite values
-        if not np.isfinite(normalized_audio).all():
+        if not np.isfinite(noise_reduced_audio).all():
             print("Warning: Non-finite values encountered in audio data. Skipping preprocessing.")
             return audio_data
+        
+        # Apply normalization
+        normalized_audio = librosa.util.normalize(noise_reduced_audio)
         
         # Apply filtering (e.g., bandpass filter)
         filtered_audio = self._apply_bandpass_filter(normalized_audio)
