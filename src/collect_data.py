@@ -55,16 +55,23 @@ class FishingSequenceRecorder:
             pass
 
     def record(self):
+        monitor = {"top": 0, "left": 0, "width": 1920, "height": 1080}
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.out = cv2.VideoWriter(os.path.join(self.output_dir, f"{self.sequence_name}.mp4"), fourcc, 30.0, (1920, 1080))
+        self.out = cv2.VideoWriter(os.path.join(self.output_dir, f"{self.sequence_name}.mp4"), fourcc, 30.0, (monitor["width"], monitor["height"]))
+
+        print("Recording will start in 5 seconds...")
+        for i in range(5, 0, -1):
+            print(f"Starting in {i} seconds...")
+            time.sleep(1)
+        print("Recording started!")
 
         self.start_time = time.time()
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
 
         while time.time() - self.start_time < self.duration:
-            img = np.array(self.sct.grab(self.sct.monitors[1]))
-            frame = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
+            img = np.array(self.sct.grab(monitor))
+            frame = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
             self.out.write(frame)
 
