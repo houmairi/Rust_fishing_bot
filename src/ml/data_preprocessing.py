@@ -1,11 +1,13 @@
 import os
 import sys
 import cv2
+import numpy as np
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# Add the project root directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
-from ..video.video_processing import detect_fish_movement, detect_rod_shake
+from src.video.video_processing import detect_fish_movement, detect_rod_shake
 
 def preprocess_data(data_directory):
     sequences = []
@@ -61,7 +63,11 @@ def preprocess_data(data_directory):
     
     return sequences, labels
 
+
 if __name__ == '__main__':
-    data_directory = '/data2process'
+    data_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/data2process'
     sequences, labels = preprocess_data(data_directory)
-    print("Preprocessing completed.")
+    
+    # Save the preprocessed data to a file
+    np.savez('preprocessed_data.npz', sequences=sequences, labels=labels)
+    print("Preprocessing completed. Data saved to 'preprocessed_data.npz'.")
