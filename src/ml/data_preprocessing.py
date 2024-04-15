@@ -1,14 +1,16 @@
 import os
+import sys
 import cv2
-from src.video.video_processing import detect_fish_movement, detect_rod_shake
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+
+from ..video.video_processing import detect_fish_movement, detect_rod_shake
 
 def preprocess_data(data_directory):
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    data_directory = os.path.join(project_root, "data", "fishing_data", "fishing_sequences")
-    
     sequences = []
     labels = []
-
+    
     for filename in os.listdir(data_directory):
         if filename.endswith(".mp4"):
             filepath = os.path.join(data_directory, filename)
@@ -16,6 +18,10 @@ def preprocess_data(data_directory):
             
             # Read the video file
             cap = cv2.VideoCapture(filepath)
+            if not cap.isOpened():
+                print(f"Error opening video file: {filepath}")
+                continue
+            
             while True:
                 ret, frame = cap.read()
                 if not ret:
@@ -35,23 +41,27 @@ def preprocess_data(data_directory):
                 
                 # Create label based on the decision tree
                 if fish_movement == "left":
-                    if rod_shake:
-                        label = "release_d"
-                    else:
+                    if rod_shake < 50:
                         label = "hold_d"
+                    else:
+                        label = "release_d"
                 elif fish_movement == "right":
-                    if rod_shake:
-                        label = "release_a"
-                    else:
+                    if rod_shake < 50:
                         label = "hold_a"
-                else:
-                    if rod_shake:
-                        label = "release_s"
                     else:
+                        label = "release_a"
+                else:
+                    if rod_shake < 50:
                         label = "hold_s"
+                    else:
+                        label = "release_s"
                 
                 labels.append(label)
-                
                 previous_frame = frame
-
+    
     return sequences, labels
+
+if __name__ == '__main__':
+    data_directory = '/data2process'
+    sequences, labels = preprocess_data(data_directory)
+    print("Preprocessing completed.")

@@ -39,7 +39,60 @@ def detect_rod_shake(frame, threshold=50):
     # Count the number of edge pixels
     shake_intensity = cv2.countNonZero(edges)
     
-    if shake_intensity >= threshold:
-        return True
-    else:
-        return False
+    return shake_intensity
+
+def process_video(video_path):
+    cap = cv2.VideoCapture(video_path)
+    
+    # Check if the video is opened successfully
+    if not cap.isOpened():
+        print("Error opening video file")
+        return
+    
+    # Get the video frame dimensions
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+    # Initialize variables
+    previous_frame = None
+    fish_movement = "none"
+    rod_shake_intensity = 0
+    
+    while True:
+        # Read a frame from the video
+        ret, frame = cap.read()
+        
+        # Break the loop if no more frames are available
+        if not ret:
+            break
+        
+        # Skip the first frame
+        if previous_frame is None:
+            previous_frame = frame
+            continue
+        
+        # Detect fish movement
+        fish_movement = detect_fish_movement(frame, previous_frame)
+        
+        # Detect rod shake intensity
+        rod_shake_intensity = detect_rod_shake(frame)
+        
+        # Update the previous frame
+        previous_frame = frame
+        
+        # Display the frame with annotations
+        cv2.putText(frame, f"Fish Movement: {fish_movement}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f"Rod Shake Intensity: {rod_shake_intensity}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.imshow("Fishing Analysis", frame)
+        
+        # Break the loop if 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    # Release the video capture and close windows
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Example usage
+video_path = "data2process/test4.mp4"
+process_video(video_path)
