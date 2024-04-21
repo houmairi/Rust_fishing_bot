@@ -92,8 +92,6 @@ class FishBiteDetector():
 
             print("Audio detection stopped.")
 
-            print("Audio detection stopped.")
-
     def _compute_similarity(self, audio_segment):
         try:
             audio_segment = librosa.util.normalize(audio_segment)

@@ -6,6 +6,7 @@ from threading import Event
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
+from bot.fish_caught_detector import FishCaughtDetector
 from src.bot.fishing_bot import FishingBot
 from src.bot.game_interaction import GameInteraction
 from src.sound.sound_detection import FishBiteDetector
@@ -15,8 +16,11 @@ def main():
 
     game_window_title = "Rust"
     game_interaction = GameInteraction(game_window_title)
-    fishing_bot = FishingBot(game_interaction)
     fish_bite_detector = FishBiteDetector()
+    
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    reference_images_path = os.path.join(project_root,"rust-fishing-bot" ,"data", "fishing_data", "fishing_caught_images")
+    fishing_bot = FishingBot(game_interaction, reference_images_path)
 
     # Create an event to signal when the sound cue is recognized
     sound_cue_recognized = Event()
@@ -36,17 +40,20 @@ def main():
                 print("Rust game detected!")
                 print("Starting audio detection...")
                 fish_bite_detector.start_detection()
-                #fishing_bot.start_fishing()
+                print("Audio detection started. Waiting for a fish bite...")
+                sound_cue_recognized.wait()  # Wait for the sound cue to be recognized
+                fishing_bot.start_fishing()  # Start fishing after the sound cue is recognized
+                while True:
+                    caught_fish = fishing_bot.is_fish_caught()
+                    if caught_fish:
+                        print(f"Congratulations! You caught a {caught_fish}!")
+                        break
+                    time.sleep(1)  # Wait before checking again
                 break
             else:
                 print("Rust game not found. Waiting...")
                 time.sleep(5)  # Wait for 5 seconds before checking again
 
-        print("Waiting for the sound cue to be recognized...")
-        print("Press 'Ctrl+C' to stop the fishing bot.")
-
-        while True:
-            time.sleep(1)  # Keep the main thread running
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Stopping fishing bot.")
     except AttributeError as e:

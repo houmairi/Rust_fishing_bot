@@ -34,11 +34,9 @@ class GameInteraction:
             return None
 
         window_rect = win32gui.GetWindowRect(window_handle)
-        monitor = {"top": window_rect[1], "left": window_rect[0], "width": window_rect[2] - window_rect[0], "height": window_rect[3] - window_rect[1]}
-
-        screen_shot = self.sct.grab(monitor)
-        img = np.array(screen_shot)
-        return img
+        screen_image = np.array(pyautogui.screenshot(region=window_rect))
+        
+        return screen_image
 
     def focus_game_window(self):
         if self.game_window_title is None:
