@@ -19,7 +19,7 @@ def main():
     fish_bite_detector = FishBiteDetector()
     
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    reference_images_path = os.path.join(project_root,"rust-fishing-bot" ,"data", "fishing_data", "fishing_caught_images")
+    reference_images_path = os.path.join(project_root, "rust-fishing-bot", "data", "fishing_data", "fishing_caught_images")
     fishing_bot = FishingBot(game_interaction, reference_images_path)
 
     # Create an event to signal when the sound cue is recognized
@@ -29,7 +29,6 @@ def main():
     def on_sound_cue_recognized(similarity):
         sound_cue_recognized.set()
         print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
-        fishing_bot.on_fish_bite_detected(similarity)
 
     # Register the callback function in the FishBiteDetector
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
@@ -43,12 +42,21 @@ def main():
                 print("Audio detection started. Waiting for a fish bite...")
                 sound_cue_recognized.wait()  # Wait for the sound cue to be recognized
                 fishing_bot.start_fishing()  # Start fishing after the sound cue is recognized
+                
+                start_time = time.time()
                 while True:
-                    caught_fish = fishing_bot.is_fish_caught()
+                    caught_fish, similarity = fishing_bot.is_fish_caught()
+                    current_time = time.time()
+                    elapsed_time = current_time - start_time
+                    
+                    print(f"Elapsed time: {elapsed_time:.2f}s, Similarity: {similarity:.2f}")
+                    
                     if caught_fish:
-                        print(f"Congratulations! You caught a {caught_fish}!")
+                        print(f"Congratulations! You caught a {caught_fish} with similarity: {similarity:.2f}")
                         break
-                    time.sleep(1)  # Wait before checking again
+                    
+                    time.sleep(1)  # Wait for 1 second before checking again
+                
                 break
             else:
                 print("Rust game not found. Waiting...")

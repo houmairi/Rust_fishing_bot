@@ -18,12 +18,15 @@ class FishCaughtDetector:
         return reference_images
 
     def is_fish_caught(self, screen_image):
+        max_similarity = 0
+        caught_fish = None
         for fish_name, reference_image in self.reference_images.items():
             result = cv2.matchTemplate(screen_image, reference_image, cv2.TM_CCOEFF_NORMED)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-            if max_val >= 0.8:  # Adjust the threshold as needed
-                return fish_name
-        return None
+            if max_val > max_similarity:
+                max_similarity = max_val
+                caught_fish = fish_name
+        return caught_fish, max_similarity
 
     def preprocess_image(self, image):
         # Crop the region of interest (bottom right corner)

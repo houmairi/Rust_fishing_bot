@@ -82,13 +82,13 @@ class FishBiteDetector():
                     # Process the preprocessed audio data
                     similarity, file_name = self._compute_similarity(preprocessed_audio)
                     if similarity is not None:
-                        print(f"Similarity: {similarity:.2f}, File: {file_name}")
+                        print(f"Fish bite detected! Similarity: {similarity:.2f}, File: {file_name}")
 
                         threshold = 0.4
                         if similarity >= threshold:
                             print(f"Fish bite detected! Similarity: {similarity:.2f}, File: {file_name}")
                             if self.on_sound_cue_recognized:
-                                self.on_sound_cue_recognized(similarity)  # Pass the similarity value to the callback
+                                self.on_sound_cue_recognized(similarity)  # Pass the similarity value to the callback function
 
             print("Audio detection stopped.")
 

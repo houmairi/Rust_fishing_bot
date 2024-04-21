@@ -60,6 +60,6 @@ class FishingBot:
         screen_image = self.game_interaction.capture_game_screen()
         
         # Check if a fish is caught using the FishCaughtDetector
-        caught_fish = self.fish_caught_detector.is_fish_caught(screen_image)
+        caught_fish, similarity = self.fish_caught_detector.is_fish_caught(screen_image)
         
-        return caught_fish
+        return caught_fish, similarity
