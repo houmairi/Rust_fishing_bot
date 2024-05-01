@@ -27,7 +27,7 @@ class GameInteraction:
 
     def capture_game_screen(self):
         if self.game_window_title is None:
-            return pyautogui.screenshot()
+            return np.array(pyautogui.screenshot())
 
         window_handle = win32gui.FindWindow(None, self.game_window_title)
         if window_handle == 0:
@@ -60,12 +60,12 @@ class GameInteraction:
                 break
             time.sleep(1)
 
-    def perform_action(self, action):
-        if action == "press_s":
-            self.focus_game_window()
-            self.keyboard.press(Key.space)  # Press the spacebar key
-            self.keyboard.release(Key.space)  # Release the spacebar key
-            print("Perform action: press 's'")
+    #def perform_action(self, action):
+    #    if action == "press_s":
+    #        self.focus_game_window()
+    #        self.keyboard.press(Key.space)  # Press the spacebar key
+    #        self.keyboard.release(Key.space)  # Release the spacebar key
+    #        print("Perform action: press 's'")
 
     def is_fishing_finished(self):
         # Check if the fishing is finished

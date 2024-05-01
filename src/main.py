@@ -18,8 +18,11 @@ def main():
     game_interaction = GameInteraction(game_window_title)
     fish_bite_detector = FishBiteDetector()
     
+    last_sound_cue_time = 0
+    sound_cue_interval = 1  # Adjust the interval as needed
+    
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    reference_images_path = os.path.join(project_root, "rust-fishing-bot", "data", "fishing_data", "fishing_caught_images")
+    #remove later reference_images_path = os.path.join(project_root, "rust-fishing-bot", "data", "fishing_data", "fishing_caught_images")
     fishing_bot = FishingBot(game_interaction)
 
     # Create an event to signal when the sound cue is recognized
@@ -27,15 +30,20 @@ def main():
 
     # Function to be called when the sound cue is recognized
     def on_sound_cue_recognized(similarity):
-        sound_cue_recognized.set()
-        print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
+        nonlocal last_sound_cue_time
+        current_time = time.time()
         
-        # Perform text recognition when the sound cue is recognized
-        caught_fish = fishing_bot.is_fish_caught()
-        if caught_fish:
-            print(f"Congratulations! You caught a {caught_fish}!")
-        else:
-            print("No fish caught.")
+        if current_time - last_sound_cue_time >= sound_cue_interval:
+            last_sound_cue_time = current_time
+            sound_cue_recognized.set()
+            print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
+            
+            # Perform text recognition when the sound cue is recognized
+            caught_fish = fishing_bot.is_fish_caught()
+            if caught_fish:
+                print(f"Congratulations! You caught a {caught_fish}!")
+            else:
+                print("No fish caught.")
 
     # Register the callback function in the FishBiteDetector
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
@@ -52,19 +60,18 @@ def main():
                 
                 start_time = time.time()
                 while True:
-                    caught_fish, similarity = fishing_bot.is_fish_caught()
+                    # Perform text recognition when the sound cue is recognized
+                    caught_fish = fishing_bot.is_fish_caught()
+                    if caught_fish:
+                        print(f"Congratulations! You caught a {caught_fish}!")
+                    else:
+                        print("No fish detected within the specified timeout.")
                     current_time = time.time()
                     elapsed_time = current_time - start_time
                     
-                    print(f"Elapsed time: {elapsed_time:.2f}s, Similarity: {similarity:.2f}")
+                    #print(f"Elapsed time: {elapsed_time:.2f}s, Similarity: {similarity:.2f}")
                     
-                    if caught_fish:
-                        print(f"Congratulations! You caught a {caught_fish} with similarity: {similarity:.2f}")
-                        break
-                    
-                    time.sleep(1)  # Wait for 1 second before checking again
-                
-                break
+                    #time.sleep(1)  # Wait for 1 second before checking again
             else:
                 print("Rust game not found. Waiting...")
                 time.sleep(5)  # Wait for 5 seconds before checking again

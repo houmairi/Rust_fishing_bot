@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = 'C:/OCR/Tesseract-OCR/tesseract.exe'  # your path may be different
 
 class FishCaughtDetector:
     def __init__(self):
@@ -46,6 +45,9 @@ class FishCaughtDetector:
         return roi
 
     def extract_text_from_image(self, image):
+        # Specify the path to the Tesseract executable
+        tesseract_path = r'C:\Users\Niko\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+        
         # Apply OCR using Tesseract
         text = pytesseract.image_to_string(image)
 
