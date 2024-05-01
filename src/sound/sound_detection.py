@@ -38,7 +38,7 @@ class FishBiteDetector():
                 
                 sound_data = self._preprocess_audio(sound_data, self.clear_sound_data)  # Preprocess the reference sound
                 self.reference_sounds.append((sound_data, file))
-                print(f"Loaded reference sound file: {sound_file}")
+                #print(f"Loaded reference sound file: {sound_file}")
 
         if self.sample_rate is None:
             raise ValueError("No valid reference sound files found.")

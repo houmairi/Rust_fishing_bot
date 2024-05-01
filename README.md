@@ -78,6 +78,15 @@ graph TD;
     F -->|Yes| Q[Hold 'S'];
     F -->|No| R[Rod may break];
 ```
+```mermaid
+graph LR
+    A[Datensammlung] --> B[Datenverarbeitung]
+    B --> C[Modelltraining]
+    C --> D[Entscheidungsfindung]
+    D --> E[Aktionsausführung]
+    E --> F[Feedback und Verbesserung]
+    F --> C
+```
 
 The decision tree illustrates the key decision points and counter-movements based on the fish's movement direction and the intensity of the rod shake. The machine learning model will learn these decision rules from the labeled training data and make predictions accordingly during the fishing minigame.
 

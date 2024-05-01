@@ -20,7 +20,7 @@ def main():
     
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     reference_images_path = os.path.join(project_root, "rust-fishing-bot", "data", "fishing_data", "fishing_caught_images")
-    fishing_bot = FishingBot(game_interaction, reference_images_path)
+    fishing_bot = FishingBot(game_interaction)
 
     # Create an event to signal when the sound cue is recognized
     sound_cue_recognized = Event()
@@ -29,6 +29,13 @@ def main():
     def on_sound_cue_recognized(similarity):
         sound_cue_recognized.set()
         print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
+        
+        # Perform text recognition when the sound cue is recognized
+        caught_fish = fishing_bot.is_fish_caught()
+        if caught_fish:
+            print(f"Congratulations! You caught a {caught_fish}!")
+        else:
+            print("No fish caught.")
 
     # Register the callback function in the FishBiteDetector
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized

@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+from pytesseract import TesseractNotFoundError
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
@@ -9,12 +10,12 @@ from src.bot.fish_caught_detector import FishCaughtDetector
 import keyboard
 
 class FishingBot:
-    def __init__(self, game_interaction, reference_images_path):
+    def __init__(self, game_interaction):
         self.game_interaction = game_interaction
         self.fish_bite_detector = FishBiteDetector()
         self.fish_bite_detector.on_sound_cue_recognized = self.on_fish_bite_detected
         self.is_running = False
-        self.fish_caught_detector = FishCaughtDetector(reference_images_path)
+        self.fish_caught_detector = FishCaughtDetector()  # Remove the reference_images_path argument
 
     def start_fishing(self):
         self.is_running = True
@@ -59,7 +60,10 @@ class FishingBot:
         # Capture the game screen
         screen_image = self.game_interaction.capture_game_screen()
         
-        # Check if a fish is caught using the FishCaughtDetector
-        caught_fish, similarity = self.fish_caught_detector.is_fish_caught(screen_image)
-        
-        return caught_fish, similarity
+        try:
+            # Check if a fish is caught using the FishCaughtDetector
+            caught_fish = self.fish_caught_detector.is_fish_caught(screen_image)
+            return caught_fish
+        except TesseractNotFoundError:
+            print("Tesseract OCR not found. Please install Tesseract and ensure it's in the system PATH.")
+            return None
