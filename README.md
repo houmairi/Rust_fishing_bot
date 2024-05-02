@@ -78,6 +78,18 @@ graph TD;
     F -->|Yes| Q[Hold 'S'];
     F -->|No| R[Rod may break];
 ```
+
+```mermaid
+graph TD;
+    A[Fish Detected] --> S[Press 'S'] --> B{Is the rod tension high?};
+    B -->|Yes| C[Release 'S'] --> D{Is the fish moving?};
+    B -->|No| D;
+    D -->|Yes| E{Moving Left or Right?};
+    E -->|Left| F[Press 'D'];
+    E -->|Right| G[Press 'A'];
+    D -->|No| H[Press 'S'];
+```
+
 ```mermaid
 graph LR
     A[Datensammlung] --> B[Datenverarbeitung]
