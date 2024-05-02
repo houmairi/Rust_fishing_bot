@@ -45,13 +45,17 @@ class FishCaughtDetector:
         return roi
 
     def extract_text_from_image(self, image):
-        # Specify the path to the Tesseract executable
-        tesseract_path = r'C:\Users\Niko\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
-        
-        # Apply OCR using Tesseract
-        text = pytesseract.image_to_string(image)
+        try:
+            # Specify the path to the Tesseract executable
+            tesseract_path = r'C:\Users\Niko\AppData\Local\Programs\Tesseract-OCR\tesseract.exe'
+            
+            # Apply OCR using Tesseract
+            text = pytesseract.image_to_string(image)
 
-        return text
+            return text
+        except pytesseract.TesseractError as e:
+            print(f"Tesseract OCR error: {str(e)}")
+            return ""
 
     def compare_text_with_fish_names(self, text):
         # List of possible fish names

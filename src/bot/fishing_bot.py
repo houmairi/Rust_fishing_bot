@@ -26,18 +26,13 @@ class FishingBot:
         # Stop the sound detection when the minigame starts
         self.fish_bite_detector.stop_detection()
         
-        caught_fish = self.is_fish_caught()
-        if caught_fish:
-            print(f"Congratulations! You caught a {caught_fish}!")
-        else:
-            print("No fish caught.")
+        #caught_fish = self.is_fish_caught()
+        #if caught_fish:
+        #    print(f"Congratulations! You caught a {caught_fish}!")
+        #else:
+        #    print("No fish caught.")
         
         self.stop_fishing()
-
-    #def on_fish_bite_detected(self, similarity):
-        #if self.is_running and similarity >= 0.8:
-            #self.game_interaction.perform_action("press_s")
-            #print("Fish bite detected. Pressing 'S' to start fishing minigame.")
 
     def stop_fishing(self):
         self.is_running = False
@@ -73,9 +68,8 @@ class FishingBot:
                 caught_fish = self.fish_caught_detector.is_fish_caught(screen_image)
                 if caught_fish:
                     return caught_fish
-            except TesseractNotFoundError:
-                print("Tesseract OCR not found. Please install Tesseract and ensure it's in the system PATH.")
-                return None
+            except Exception as e:
+                print(f"An error occurred during the OCR process: {str(e)}")
             
             # Add a small delay between each scan
             time.sleep(0.1)

@@ -12,40 +12,37 @@ from src.bot.game_interaction import GameInteraction
 from src.sound.sound_detection import FishBiteDetector
 
 def main():
-    global sound_cue_recognized  # Declare sound_cue_recognized as a global variable
-
     game_window_title = "Rust"
     game_interaction = GameInteraction(game_window_title)
     fish_bite_detector = FishBiteDetector()
-    
-    last_sound_cue_time = 0
-    sound_cue_interval = 1  # Adjust the interval as needed
-    
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    #remove later reference_images_path = os.path.join(project_root, "rust-fishing-bot", "data", "fishing_data", "fishing_caught_images")
     fishing_bot = FishingBot(game_interaction)
 
-    # Create an event to signal when the sound cue is recognized
-    sound_cue_recognized = Event()
-
-    # Function to be called when the sound cue is recognized
     def on_sound_cue_recognized(similarity):
-        nonlocal last_sound_cue_time
-        current_time = time.time()
-        
-        if current_time - last_sound_cue_time >= sound_cue_interval:
-            last_sound_cue_time = current_time
-            sound_cue_recognized.set()
-            print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
-            
-            # Perform text recognition when the sound cue is recognized
-            caught_fish = fishing_bot.is_fish_caught()
-            if caught_fish:
-                print(f"Congratulations! You caught a {caught_fish}!")
-            else:
-                print("No fish caught.")
+        print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
+        try:
+            #fishing_bot.start_fishing()
 
-    # Register the callback function in the FishBiteDetector
+            start_time = time.time()
+            timeout = 20  # Maximum time to scan for a fish caught (in seconds)
+
+            print("Starting OCR")
+            while time.time() - start_time < timeout:
+                caught_fish = fishing_bot.is_fish_caught()
+                if caught_fish:
+                    print(f"Congratulations! You caught a {caught_fish}!")
+                    break
+                time.sleep(0.1)  # Add a small delay between each scan
+
+            if not caught_fish:
+                print("It seems like no fish was caught.")
+
+            fishing_bot.stop_fishing()
+            print("Sound cue recognition will repeat.")
+        except Exception as e:
+            print(f"An error occurred during the fishing process: {str(e)}")
+            fishing_bot.stop_fishing()
+            print("Sound cue recognition will repeat.")
+
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
 
     try:
@@ -55,31 +52,16 @@ def main():
                 print("Starting audio detection...")
                 fish_bite_detector.start_detection()
                 print("Audio detection started. Waiting for a fish bite...")
-                sound_cue_recognized.wait()  # Wait for the sound cue to be recognized
-                fishing_bot.start_fishing()  # Start fishing after the sound cue is recognized
-                
-                start_time = time.time()
+
                 while True:
-                    # Perform text recognition when the sound cue is recognized
-                    caught_fish = fishing_bot.is_fish_caught()
-                    if caught_fish:
-                        print(f"Congratulations! You caught a {caught_fish}!")
-                    else:
-                        print("No fish detected within the specified timeout.")
-                    current_time = time.time()
-                    elapsed_time = current_time - start_time
-                    
-                    #print(f"Elapsed time: {elapsed_time:.2f}s, Similarity: {similarity:.2f}")
-                    
-                    #time.sleep(1)  # Wait for 1 second before checking again
+                    time.sleep(1)  # Wait for 1 second before checking again
+
             else:
                 print("Rust game not found. Waiting...")
                 time.sleep(5)  # Wait for 5 seconds before checking again
 
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Stopping fishing bot.")
-    except AttributeError as e:
-        print(f"AttributeError occurred: {str(e)}")
     finally:
         try:
             fishing_bot.stop_fishing()
