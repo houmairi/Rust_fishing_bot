@@ -40,7 +40,9 @@ def preprocess_data(data_directory):
                 ret, frame = cap.read()
 
                 if ret:
-                    video_frames.append(frame)
+                    # Flatten the frame into a 1D array
+                    flattened_frame = frame.flatten()
+                    video_frames.append(flattened_frame)
                     label = f"{event}_{action}" if event else action
                     video_labels.append(label)
 
@@ -118,6 +120,10 @@ def preprocess_data(data_directory):
 if __name__ == '__main__':
     data_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/data2process'
     sequences, labels = preprocess_data(data_directory)
+
+    # Convert sequences and labels to numpy arrays
+    sequences = np.array(sequences)
+    labels = np.array(labels)
 
     # Save the preprocessed data to a file
     np.savez('preprocessed_data.npz', sequences=sequences, labels=labels)
