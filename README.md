@@ -132,3 +132,38 @@ Stay tuned for updates and further enhancements to the Fishing Bot project!
 This project is licensed under the MIT License.
 
 Happy fishing!
+
+## Dependencies
+
+```
+numpy
+opencv-python
+scikit-learn
+joblib
+tensorflow
+soundcard
+soundfile
+librosa
+noisereduce
+scipy
+pytesseract
+keyboard
+mss
+pyautogui
+pynput
+
+- `numpy`: Used for numerical operations and array manipulation.
+- `opencv-python`: Used for image processing and computer vision tasks.
+- `scikit-learn`: Used for machine learning algorithms and utilities.
+- `joblib`: Used for saving and loading trained models.
+- `tensorflow`: Used for deep learning and loading trained models.
+- `soundcard`: Used for recording audio from speakers.
+- `soundfile`: Used for reading and writing audio files.
+- `librosa`: Used for audio processing and feature extraction.
+- `noisereduce`: Used for noise reduction in audio signals.
+- `scipy`: Used for signal processing and filtering.
+- `pytesseract`: Used for optical character recognition (OCR) to extract text from images.
+- `keyboard`: Used for detecting keyboard events and simulating key presses.
+- `mss`: Used for capturing screenshots and screen regions.
+- `pyautogui`: Used for GUI automation and mouse/keyboard control.
+- `pynput`: Used for keyboard and mouse event handling.

@@ -1,3 +1,15 @@
-pyaudio
-librosa
 numpy
+opencv-python
+scikit-learn
+joblib
+tensorflow
+soundcard
+soundfile
+librosa
+noisereduce
+scipy
+pytesseract
+keyboard
+mss
+pyautogui
+pynput

@@ -59,7 +59,7 @@ class FishCaughtDetector:
 
     def compare_text_with_fish_names(self, text):
         # List of possible fish names
-        fish_names = ["anchovy", "herring", "humanskull", "orange_roughy", "salmon", "sardine", "smallshark", "smalltrout", "smallwaterbottle", "tarp"]
+        fish_names = ["anchovy", "herring", "human_skull", "orange_roughy", "salmon", "sardine", "smallshark", "smalltrout", "smallwaterbottle", "tarp", "diving_fins"]
 
         # Remove any whitespace and convert to lowercase
         text = text.strip().lower()
