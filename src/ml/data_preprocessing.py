@@ -2,14 +2,13 @@ import os
 import sys
 import cv2
 import json
-import numpy as np
+from datetime import datetime
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
 
-def preprocess_data(data_directory):
-    sequences = []
-    labels = []
+def preprocess_data(data_directory, iteration_directory):
+    metadata = []
 
     for filename in os.listdir(data_directory):
         if filename.endswith(".mp4"):
@@ -21,17 +20,14 @@ def preprocess_data(data_directory):
                 continue
 
             with open(annotation_path, 'r') as f:
-                annotations = json.load(f)
-
-            video_frames = []
-            video_labels = []
+                video_annotations = json.load(f)
 
             cap = cv2.VideoCapture(video_path)
             if not cap.isOpened():
                 print(f"Error opening video file: {video_path}")
                 continue
 
-            for annotation in annotations:
+            for annotation in video_annotations:
                 timestamp = annotation['timestamp']
                 event = annotation.get('event', '')
                 action = annotation.get('action', '')
@@ -40,18 +36,59 @@ def preprocess_data(data_directory):
                 ret, frame = cap.read()
 
                 if ret:
-                    # Flatten the frame into a 1D array
-                    flattened_frame = frame.flatten()
-                    video_frames.append(flattened_frame)
+                    frame_filename = f"{os.path.splitext(filename)[0]}_{timestamp}.jpg"
+                    frame_path = os.path.join(iteration_directory, frame_filename)
+                    cv2.imwrite(frame_path, frame)
+                    
                     label = f"{event}_{action}" if event else action
-                    video_labels.append(label)
+                    metadata.append({"file_path": frame_path, "label": label, "timestamp": timestamp})
 
             cap.release()
 
-            sequences.extend(video_frames)
-            labels.extend(video_labels)
+    metadata_path = os.path.join(iteration_directory, "metadata.json")
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
 
-    return sequences, labels
+    print(f"Preprocessing completed. Frames and metadata saved to '{iteration_directory}'.")
+
+if __name__ == '__main__':
+    data_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/data2process'
+    
+    # Create a new directory for each iteration
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    iteration_directory = os.path.join(data_directory, f"iteration_{timestamp}")
+    os.makedirs(iteration_directory, exist_ok=True)
+    
+    preprocess_data(data_directory, iteration_directory)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 # Fishing rod tension estimation functions (commented out)
 #ROI Coordinates of fishing rod: X: 1199, Y: 266, Width: 754, Height: 1141
@@ -116,15 +153,3 @@ def preprocess_data(data_directory):
 #     except ValueError:
 #         # Handle cases where no contour is found
 #         return 0.0
-
-if __name__ == '__main__':
-    data_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/data2process'
-    sequences, labels = preprocess_data(data_directory)
-
-    # Convert sequences and labels to numpy arrays
-    sequences = np.array(sequences)
-    labels = np.array(labels)
-
-    # Save the preprocessed data to a file
-    np.savez('preprocessed_data.npz', sequences=sequences, labels=labels)
-    print("Preprocessing completed. Data saved to 'preprocessed_data.npz'.")
