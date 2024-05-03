@@ -42,14 +42,21 @@ class FishingSequenceRecorder:
                 current_time = time.time() - self.start_time
                 key_char = key.char
                 if key_char not in self.pressed_keys and key_char != 'r':
-                    if key_char in ['a', 'd']:
-                        self.annotations.append({"timestamp": current_time, "action": f"press_{key_char}"})
+                    if key_char in ['a', 'd', 's']:
+                        event = None
+                        if key_char == 'd':
+                            event = "Fish moves to the left"
+                        elif key_char == 'a':
+                            event = "Fish moves to the right"
+                        elif key_char == 's':
+                            event = "Fish is being pulled towards the player"
+                        self.annotations.append({"timestamp": current_time, "event": event, "action": f"press_{key_char}"})
                         self.pressed_keys.add(key_char)
                     elif key_char == 'o' and 'o' not in self.special_keys:
-                        self.annotations.append({"timestamp": current_time, "event": "High Rod Tension"})
+                        self.annotations.append({"timestamp": current_time, "event": "High Rod Tension", "action": "press_o"})
                         self.special_keys.add('o')
-                    elif key_char == 't' and 't' not in self.special_keys:
-                        self.annotations.append({"timestamp": current_time, "event": "Fishing Rod Breaks"})
+                    elif key_char == 'p' and 't' not in self.special_keys:
+                        self.annotations.append({"timestamp": current_time, "event": "Fishing Rod Breaks", "action": "press_t"})
                         self.special_keys.add('t')
         except AttributeError:
             pass
@@ -60,7 +67,7 @@ class FishingSequenceRecorder:
                 current_time = time.time() - self.start_time
                 key_char = key.char
                 if key_char in self.pressed_keys:
-                    if key_char not in ['o', 'k', 'r']:  # Exclude 'O', 'K', and 'R' from release events
+                    if key_char not in ['o', 'p']:  # Exclude 'O', and 'P' from release events
                         self.annotations.append({"timestamp": current_time, "action": f"release_{key_char}"})
                     self.pressed_keys.remove(key_char)
         except AttributeError:
@@ -94,7 +101,7 @@ class FishingSequenceRecorder:
             os.rename(os.path.join(self.output_dir, f"{self.temp_sequence_name}.mp4"), os.path.join(self.output_dir, f"{sequence_name}.mp4"))
 
             with open(os.path.join(self.output_dir, f"{sequence_name}_annotations.json"), 'w') as f:
-                json.dump(self.annotations, f)
+                json.dump(self.annotations, f, indent=2)
 
             print(f"Sequence '{sequence_name}' recorded and annotated successfully.")
 
