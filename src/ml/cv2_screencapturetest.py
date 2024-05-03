@@ -14,7 +14,7 @@ def select_roi(frame):
 
 def main():
     # Open the video file
-    video_path = 'data2process/test4.mp4'
+    video_path = 'data2process/ez_catch1.mp4'
     cap = cv2.VideoCapture(video_path)
     
     # Read the first frame

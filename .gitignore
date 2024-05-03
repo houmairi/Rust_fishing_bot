@@ -5,3 +5,4 @@ src/fishing_sequences
 fishing_sequences/
 src/ml/data2process/
 data/fishing_data/fishing_caught_images/
+*.npz
