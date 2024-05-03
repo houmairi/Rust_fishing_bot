@@ -1,5 +1,8 @@
 # Fishing Bot - Bachelor's Thesis Project
 
+ROI Coordinates:
+X: 1199, Y: 266, Width: 754, Height: 1141
+
 **Disclaimer:** This project is for educational purposes only.
 
 This project aims to develop an automated fishing bot for the game "Rust" using machine learning techniques. The bot will detect when a fish bites the hook and perform the appropriate counter-movements to catch the fish successfully.
