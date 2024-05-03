@@ -53,7 +53,7 @@ def train_model(images, labels):
     return model, label_encoder
 
 if __name__ == '__main__':
-    iteration_directory = 'data2process/iteration_20240503_143338'  # NEED TO REPLACE EACH TIME
+    iteration_directory = 'data2process/iteration_20240503_171233'  # NEED TO REPLACE EACH TIME
     images, labels = load_data(iteration_directory)
 
     model, label_encoder = train_model(images, labels)

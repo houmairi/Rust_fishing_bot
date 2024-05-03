@@ -42,8 +42,8 @@ def predict_label(model, image):
     return predicted_label[0]
 
 if __name__ == '__main__':
-    model_directory = 'data2process/iteration_20240503_143338'  # Replace with the actual directory path of the trained model
-    test_data_directory = 'data2process/iteration_20240503_144645'  # Replace with the actual directory path of the preprocessed test data
+    model_directory = 'data2process/iteration_20240503_171233'  # Replace with the actual directory path of the trained model
+    test_data_directory = 'data2process/iteration_20240503_171501'  # Replace with the actual directory path of the preprocessed test data
 
     # Load the trained model and label encoder
     model_path = os.path.join(model_directory, 'trained_model.pkl')
