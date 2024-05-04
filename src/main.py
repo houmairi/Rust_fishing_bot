@@ -6,7 +6,7 @@ from threading import Event
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
-from bot.fish_caught_detector import FishCaughtDetector
+#from bot.fish_caught_detector import FishCaughtDetector
 from src.bot.fishing_bot import FishingBot
 from src.bot.game_interaction import GameInteraction
 from src.sound.sound_detection import FishBiteDetector

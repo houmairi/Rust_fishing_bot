@@ -24,6 +24,9 @@ class FishCaughtDetector:
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define the range of green color in HSV
+        #lower_green = np.array([60, 10, 20])
+        #upper_green = np.array([130, 50, 40])
+
         lower_green = np.array([40, 50, 50])
         upper_green = np.array([80, 255, 255])
 
@@ -51,7 +54,7 @@ class FishCaughtDetector:
             
             # Apply OCR using Tesseract
             text = pytesseract.image_to_string(image)
-
+            print(text)
             return text
         except pytesseract.TesseractError as e:
             print(f"Tesseract OCR error: {str(e)}")
@@ -59,7 +62,7 @@ class FishCaughtDetector:
 
     def compare_text_with_fish_names(self, text):
         # List of possible fish names
-        fish_names = ["anchovy", "herring", "human_skull", "orange_roughy", "salmon", "sardine", "smallshark", "smalltrout", "smallwaterbottle", "tarp", "diving_fins"]
+        fish_names = ["anchovy", "herring", "human_skull", "orange_roughy", "salmon", "sardine", "smallshark", "smalltrout", "smallwaterbottle", "tarp", "diving_fins"] #safe zone exception einbauen
 
         # Remove any whitespace and convert to lowercase
         text = text.strip().lower()
