@@ -103,6 +103,45 @@ graph LR
     F --> C
 ```
 
+```mermaid
+graph TD;
+    A[Fish Detected] --> B{Is the fish moving?};
+    
+    B -->|No| C[Press 'S' to reel in];
+    
+    C --> D{Is the rod tension high?};
+    
+    D -->|Yes| E[Release 'S' to reduce tension] --> B;
+    
+    D -->|No| F{Is the fish centered?};
+    
+    F -->|Yes| C;
+    
+    F -->|No| G{Moving Left or Right?};
+    
+    B -->|Yes| G;
+    
+    G -->|Left| H[Press 'D' to pull left];
+    
+    G -->|Right| I[Press 'A' to pull right];
+    
+    H --> J{Is the rod tension high?};
+    
+    I --> J;
+    
+    J -->|Yes| K[Release 'A' or 'D' to reduce tension] --> B;
+    
+    J -->|No| L{Is the fish centered?};
+    
+    L -->|Yes| M{Reel in faster?};
+    
+    M -->|Yes| N[Press 'S' while holding 'A' or 'D'] --> B;
+    
+    M -->|No| C;
+    
+    L -->|No| G;
+```
+
 The decision tree illustrates the key decision points and counter-movements based on the fish's movement direction and the intensity of the rod shake. The machine learning model will learn these decision rules from the labeled training data and make predictions accordingly during the fishing minigame.
 
 ## Future Work

@@ -19,6 +19,9 @@ class FishingSequenceRecorder:
         self.recording = False
         self.recording_thread = None
         self.stop_event = threading.Event()
+        self.rod_roi = (1199, 266, 754, 1141)  # ROI coordinates for the fishing rod
+        self.prev_frame = None
+        self.shake_threshold = 30  # Adjust this threshold as needed
 
     def on_press(self, key):
         if key == keyboard.Key.alt_l:
@@ -108,12 +111,56 @@ class FishingSequenceRecorder:
             print(f"Sequence '{sequence_name}' recorded and annotated successfully.")
 
     def record_frames(self):
+        previous_tension_level = None
+        
         while self.recording:
             img = pyautogui.screenshot()
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+            rod_tension = self.estimate_rod_tension(frame, self.rod_roi)
+            
+            current_tension_level = None
+            if rod_tension <= 30000:
+                current_tension_level = "Low"
+            elif rod_tension <= 60000:
+                current_tension_level = "Mid"
+            else:
+                current_tension_level = "High"
+
+            if current_tension_level != previous_tension_level:
+                current_time = time.time() - self.start_time
+                self.annotations.append({"timestamp": current_time, "event": "Rod Tension", "value": rod_tension, "level": current_tension_level})
+                previous_tension_level = current_tension_level
+
             self.out.write(frame)
             cv2.imshow('Fishing Sequence', frame)
             cv2.waitKey(1)
+            
+    def estimate_rod_tension(self, frame, roi):
+        # Extract the fishing rod ROI from the frame
+        x, y, w, h = roi
+        rod_roi = frame[y:y+h, x:x+w]
+
+        # Convert the ROI to grayscale
+        gray_roi = cv2.cvtColor(rod_roi, cv2.COLOR_BGR2GRAY)
+
+        if self.prev_frame is None:
+            self.prev_frame = gray_roi
+            return 0
+
+        # Calculate the absolute difference between the current and previous frames
+        diff = cv2.absdiff(gray_roi, self.prev_frame)
+
+        # Apply thresholding to the difference image
+        _, thresh = cv2.threshold(diff, self.shake_threshold, 255, cv2.THRESH_BINARY)
+
+        # Count the number of non-zero pixels in the thresholded image
+        shake_intensity = cv2.countNonZero(thresh)
+
+        # Update the previous frame
+        self.prev_frame = gray_roi
+
+        return shake_intensity
 
     def run(self):
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
