@@ -8,6 +8,18 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
+def preprocess_frame(frame):
+    # Resize the frame to 800x600
+    resized_frame = cv2.resize(frame, (2560, 1440))
+
+    # Convert the frame to grayscale
+    gray_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+
+    # Flatten the frame to a 1D array
+    flattened_frame = gray_frame.flatten()
+
+    return flattened_frame
+
 def load_data(iteration_directory):
     metadata_path = os.path.join(iteration_directory, "metadata.json")
     with open(metadata_path, 'r') as f:
@@ -20,11 +32,11 @@ def load_data(iteration_directory):
         file_path = entry['file_path']
         label = entry['label']
 
-        # Load the image and convert it to a feature vector
+        # Load the image and preprocess it
         image = cv2.imread(file_path)
-        feature_vector = image.flatten()
+        preprocessed_image = preprocess_frame(image)
 
-        images.append(feature_vector)
+        images.append(preprocessed_image)
         labels.append(label)
 
     return images, labels
@@ -53,7 +65,7 @@ def train_model(images, labels):
     return model, label_encoder
 
 if __name__ == '__main__':
-    iteration_directory = 'data2process/iteration_20240503_171233'  # NEED TO REPLACE EACH TIME
+    iteration_directory = 'data2process/iteration_20240505_125540'  # NEED TO REPLACE EACH TIME
     images, labels = load_data(iteration_directory)
 
     model, label_encoder = train_model(images, labels)

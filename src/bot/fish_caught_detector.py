@@ -62,7 +62,7 @@ class FishCaughtDetector:
 
     def compare_text_with_fish_names(self, text):
         # List of possible fish names
-        fish_names = ["anchovy", "herring", "human skull", "orange roughy", "salmon", "sardine", "small shark", "small trout", "small waterbottle", "tarp", "diving fins", "water jug"] #safe zone exception einbauen
+        fish_names = ["anchovy", "herring", "human skull", "orange roughy", "salmon", "sardine", "small shark", "small trout", "small waterbottle", "tarp", "diving fins", "water jug", "catfish", "yellow perch"] #safe zone exception einbauen
 
         # Remove any whitespace and convert to lowercase
         text = text.strip().lower()
