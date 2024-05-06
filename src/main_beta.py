@@ -3,13 +3,13 @@ import os
 import time
 from threading import Event
 
-# Add the project's root directory to the Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
-from bot.game_interaction import GameInteraction
-from bot.fishing_bot import FishingBot
-from sound.sound_detection import FishBiteDetector
+#from bot.fish_caught_detector import FishCaughtDetector
+from src.bot.fishing_bot import FishingBot
+from src.bot.game_interaction import GameInteraction
+from src.sound.sound_detection import FishBiteDetector
 
 def main():
     game_window_title = "Rust"
@@ -17,22 +17,31 @@ def main():
     fish_bite_detector = FishBiteDetector()
     fishing_bot = FishingBot(game_interaction)
 
-    # Load the trained model and label encoder
-    #model_path = "ml/data2process/iteration_20240505_123552/trained_model.pkl"  # Replace with the actual path
-    #label_encoder_path = "ml/data2process/iteration_20240505_123552/label_encoder.pkl"  # Replace with the actual path
-    #fishing_bot.load_model(model_path, label_encoder_path)
-
-    # Create an event to signal when the sound cue is recognized
-    sound_cue_recognized = Event()
-
     def on_sound_cue_recognized(similarity):
-        sound_cue_recognized.set()
-        print(f"Sound cue recognized! Similarity: {similarity:.2f}. Fishing minigame started.")
+        print(f"Sound cue recognized with similarity: {similarity:.2f}! Fishing minigame started.")
         try:
-            fishing_bot.start_fishing()
+            #fishing_bot.start_fishing()
+
+            start_time = time.time()
+            timeout = 20  # Maximum time to scan for a fish caught (in seconds)
+
+            print("Starting OCR")
+            while time.time() - start_time < timeout:
+                caught_fish = fishing_bot.is_fish_caught()
+                if caught_fish:
+                    print(f"Congratulations! You caught a {caught_fish}!")
+                    break
+                time.sleep(0.1)  # Add a small delay between each scan
+
+            if not caught_fish:
+                print("It seems like no fish was caught.")
+
+            fishing_bot.stop_fishing()
+            print("Sound cue recognition will repeat.")
         except Exception as e:
             print(f"An error occurred during the fishing process: {str(e)}")
             fishing_bot.stop_fishing()
+            print("Sound cue recognition will repeat.")
 
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
 
@@ -43,9 +52,6 @@ def main():
                 print("Starting audio detection...")
                 fish_bite_detector.start_detection()
                 print("Audio detection started. Waiting for a fish bite...")
-
-                # Wait for the sound cue to be recognized
-                sound_cue_recognized.wait()
 
                 while True:
                     time.sleep(1)  # Wait for 1 second before checking again

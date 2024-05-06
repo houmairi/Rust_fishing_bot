@@ -8,3 +8,4 @@ data/fishing_data/fishing_caught_images/
 *.npz
 src/ml/*.npz
 src/ml/*.pkl
+src/*.png
