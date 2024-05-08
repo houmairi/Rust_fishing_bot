@@ -136,6 +136,21 @@ class FishingSequenceRecorder:
             # Resize the frame to the desired recording resolution
             frame = cv2.resize(frame, self.recording_resolution)
 
+            # Get the frame dimensions
+            height, width, _ = frame.shape
+
+            # Define the middle field coordinates
+            middle_start = int(width * 0.4)  # Adjust the factor as needed
+            middle_end = int(width * 0.6)  # Adjust the factor as needed
+
+            # Draw lines to visualize the middle field
+            cv2.line(frame, (middle_start, 0), (middle_start, height), (255, 0, 0), 2)
+            cv2.line(frame, (middle_end, 0), (middle_end, height), (255, 0, 0), 2)
+
+            # Display the coordinates at the top-left and bottom-right corners
+            cv2.putText(frame, "(0, 0)", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(frame, f"({width}, {height})", (width - 150, height - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
             # Check bait position every second
             current_time = time.time()
             if current_time - self.last_bait_check_time >= self.bait_check_interval:
@@ -144,18 +159,16 @@ class FishingSequenceRecorder:
                 # Detect the position of the bait (red color)
                 bait_position, bait_similarity, bait_image = self.detect_bait_position(frame)
 
-                # Determine the relative position of the bait to the middle of the screen
+                # Determine the relative position of the bait to the middle field
                 if bait_position is not None:
-                    screen_width = frame.shape[1]
-                    middle_x = screen_width // 2
                     bait_x, bait_y = bait_position
 
-                    if bait_x < middle_x:
-                        self.bait_position = "left"
-                    elif bait_x > middle_x:
-                        self.bait_position = "right"
-                    else:
+                    if middle_start <= bait_x <= middle_end:
                         self.bait_position = "middle"
+                    elif bait_x < middle_start:
+                        self.bait_position = "left"
+                    else:
+                        self.bait_position = "right"
 
                     self.annotations.append({"timestamp": current_time - self.start_time, "event": f"Bait position: {self.bait_position} (x={bait_x}, y={bait_y})", "similarity": bait_similarity})
 
@@ -187,7 +200,7 @@ class FishingSequenceRecorder:
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         red_mask = cv2.inRange(hsv_frame, lower_red, upper_red)
 
-        # Ignore the red colors on the right side of the screen
+        # Ignore the red colors on the right side of the screen (Hunger, Workbench Level 3, others need to be added if necessary)
         ignore_colors = [
             ((204, 141, 120), (215, 146, 123)),
             ((118, 77, 47), (130, 85, 55)),
