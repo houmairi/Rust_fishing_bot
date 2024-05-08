@@ -126,6 +126,9 @@ class FishingSequenceRecorder:
                 print(f"Sequence '{sequence_name}' recorded and annotated successfully.")
 
     def record_frames(self):
+        cv2.namedWindow("Fishing Sequence")
+        cv2.namedWindow("Detected Bait")
+
         while self.recording:
             img = pyautogui.screenshot()
             frame = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
@@ -138,14 +141,14 @@ class FishingSequenceRecorder:
             if current_time - self.last_bait_check_time >= self.bait_check_interval:
                 self.last_bait_check_time = current_time
 
-                # Detect the position of the bait (white and red ball)
+                # Detect the position of the bait (red color)
                 bait_position, bait_similarity, bait_image = self.detect_bait_position(frame)
 
                 # Determine the relative position of the bait to the middle of the screen
                 if bait_position is not None:
                     screen_width = frame.shape[1]
                     middle_x = screen_width // 2
-                    bait_x = bait_position[0]
+                    bait_x, bait_y = bait_position
 
                     if bait_x < middle_x:
                         self.bait_position = "left"
@@ -154,54 +157,67 @@ class FishingSequenceRecorder:
                     else:
                         self.bait_position = "middle"
 
-                    self.annotations.append({"timestamp": current_time - self.start_time, "event": f"Bait position: {self.bait_position}", "similarity": bait_similarity})
+                    self.annotations.append({"timestamp": current_time - self.start_time, "event": f"Bait position: {self.bait_position} (x={bait_x}, y={bait_y})", "similarity": bait_similarity})
 
-                    # Print the current bait position and similarity in the CLI
-                    print(f"Current bait position: {self.bait_position}, Similarity: {bait_similarity:.2f}")
+                    # Print the current bait position, coordinates, and similarity in the CLI
+                    print(f"Current bait position: {self.bait_position} (x={bait_x}, y={bait_y}), Similarity: {bait_similarity:.2f}")
+
+                    # Draw a circle around the recognized bait position
+                    cv2.circle(frame, (bait_x, bait_y), 20, (0, 255, 0), 2)
 
                     # Display the live picture of the detected bait
                     cv2.imshow("Detected Bait", bait_image)
                 else:
                     # Print a message if the bait is not detected
                     print("Bait not detected")
+                    cv2.imshow("Detected Bait", np.zeros((100, 100, 3), dtype=np.uint8))
 
             self.out.write(frame)
-            cv2.imshow('Fishing Sequence', frame)
+            cv2.imshow("Fishing Sequence", frame)
             cv2.waitKey(1)
 
+        cv2.destroyAllWindows()
+
     def detect_bait_position(self, frame):
-        # Convert the frame to grayscale
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Define the color range for the red part of the bait
+        lower_red = np.array([135, 72, 75])
+        upper_red = np.array([200, 148, 143])
 
-        best_match = None
-        best_match_val = 0
-        best_match_template = None
+        # Create a mask for the red color range
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        red_mask = cv2.inRange(hsv_frame, lower_red, upper_red)
 
-        for template in self.bait_templates:
-            # Perform template matching
-            result = cv2.matchTemplate(gray_frame, template, cv2.TM_CCOEFF_NORMED)
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        # Ignore the red colors on the right side of the screen
+        ignore_colors = [
+            ((204, 141, 120), (215, 146, 123)),
+            ((118, 77, 47), (130, 85, 55)),
+            ((255, 148, 69), (255, 108, 0))
+        ]
 
-            if max_val > best_match_val:
-                best_match = max_loc
-                best_match_val = max_val
-                best_match_template = template
+        for lower_color, upper_color in ignore_colors:
+            lower_color = np.array(lower_color)
+            upper_color = np.array(upper_color)
+            ignore_mask = cv2.inRange(frame, lower_color, upper_color)
+            red_mask = cv2.bitwise_and(red_mask, cv2.bitwise_not(ignore_mask))
 
-        # Set a threshold for template matching confidence
-        threshold = 0.6
+        # Find contours of the red regions
+        contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        if best_match is not None and best_match_val >= threshold:
-            # Get the coordinates of the top-left corner of the matched region
-            bait_x, bait_y = best_match
+        if len(contours) > 0:
+            # Find the contour with the largest area (assumed to be the bait)
+            largest_contour = max(contours, key=cv2.contourArea)
 
             # Calculate the center coordinates of the bait
-            bait_center_x = bait_x + best_match_template.shape[1] // 2
-            bait_center_y = bait_y + best_match_template.shape[0] // 2
+            moments = cv2.moments(largest_contour)
+            if moments["m00"] != 0:
+                bait_center_x = int(moments["m10"] / moments["m00"])
+                bait_center_y = int(moments["m01"] / moments["m00"])
 
-            # Extract the bait image from the frame
-            bait_image = frame[bait_y:bait_y+best_match_template.shape[0], bait_x:bait_x+best_match_template.shape[1]]
+                # Extract the bait image from the frame
+                x, y, w, h = cv2.boundingRect(largest_contour)
+                bait_image = frame[y:y+h, x:x+w]
 
-            return (bait_center_x, bait_center_y), best_match_val, bait_image
+                return (bait_center_x, bait_center_y), 1.0, bait_image
 
         return None, 0, None
 
