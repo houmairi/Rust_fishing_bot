@@ -9,7 +9,7 @@ import pyautogui
 import threading
 
 class FishingSequenceRecorder:
-    def __init__(self, output_dir, bait_template_paths):
+    def __init__(self, output_dir, bait_template_paths, bait_threshold=100):
         self.output_dir = output_dir
         self.out = None
         self.annotations = []
@@ -25,6 +25,7 @@ class FishingSequenceRecorder:
         self.bait_templates = [cv2.imread(path, 0) for path in bait_template_paths]  # Load the bait template images in grayscale
         self.bait_check_interval = 1  # Check bait position every 1 second
         self.last_bait_check_time = 0
+        self.bait_threshold = bait_threshold
 
     def on_press(self, key):
         if key == keyboard.Key.alt_l:
@@ -157,7 +158,7 @@ class FishingSequenceRecorder:
                 self.last_bait_check_time = current_time
 
                 # Detect the position of the bait (red color)
-                bait_position, bait_similarity, bait_image = self.detect_bait_position(frame)
+                bait_position, bait_similarity, bait_image, color_code = self.detect_bait_position(frame)
 
                 # Determine the relative position of the bait to the middle field
                 if bait_position is not None:
@@ -170,10 +171,15 @@ class FishingSequenceRecorder:
                     else:
                         self.bait_position = "right"
 
-                    self.annotations.append({"timestamp": current_time - self.start_time, "event": f"Bait position: {self.bait_position} (x={bait_x}, y={bait_y})", "similarity": bait_similarity})
+                    self.annotations.append({
+                        "timestamp": current_time - self.start_time,
+                        "event": f"Bait position: {self.bait_position} (x={bait_x}, y={bait_y})",
+                        "similarity": bait_similarity,
+                        "color_code": color_code
+                    })
 
-                    # Print the current bait position, coordinates, and similarity in the CLI
-                    print(f"Current bait position: {self.bait_position} (x={bait_x}, y={bait_y}), Similarity: {bait_similarity:.2f}")
+                    # Print the current bait position, coordinates, similarity, and color code in the CLI
+                    print(f"Current bait position: {self.bait_position} (x={bait_x}, y={bait_y}), Similarity: {bait_similarity:.2f}, Color Code: {color_code}")
 
                     # Draw a circle around the recognized bait position
                     cv2.circle(frame, (bait_x, bait_y), 20, (0, 255, 0), 2)
@@ -192,26 +198,27 @@ class FishingSequenceRecorder:
         cv2.destroyAllWindows()
 
     def detect_bait_position(self, frame):
-        # Define the color range for the red part of the bait
-        lower_red = np.array([135, 72, 75])
-        upper_red = np.array([200, 148, 143])
+        # Define the color range for the red color
+        lower_red1 = np.array([0, 50, 50])
+        upper_red1 = np.array([10, 255, 255])
+        lower_red2 = np.array([170, 50, 50])
+        upper_red2 = np.array([180, 255, 255])
 
         # Create a mask for the red color range
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        red_mask = cv2.inRange(hsv_frame, lower_red, upper_red)
+        red_mask1 = cv2.inRange(hsv_frame, lower_red1, upper_red1)
+        red_mask2 = cv2.inRange(hsv_frame, lower_red2, upper_red2)
+        red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
-        # Ignore the red colors on the right side of the screen (Hunger, Workbench Level 3, others need to be added if necessary)
-        ignore_colors = [
-            ((204, 141, 120), (215, 146, 123)),
-            ((118, 77, 47), (130, 85, 55)),
-            ((255, 148, 69), (255, 108, 0))
-        ]
+        # Define the color range for the fishing rod
+        lower_rod = np.array([106, 109, 126])
+        upper_rod = np.array([142, 156, 183])
 
-        for lower_color, upper_color in ignore_colors:
-            lower_color = np.array(lower_color)
-            upper_color = np.array(upper_color)
-            ignore_mask = cv2.inRange(frame, lower_color, upper_color)
-            red_mask = cv2.bitwise_and(red_mask, cv2.bitwise_not(ignore_mask))
+        # Create a mask for the fishing rod color range
+        rod_mask = cv2.inRange(frame, lower_rod, upper_rod)
+
+        # Subtract the fishing rod mask from the red mask
+        red_mask = cv2.bitwise_and(red_mask, cv2.bitwise_not(rod_mask))
 
         # Find contours of the red regions
         contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -220,19 +227,27 @@ class FishingSequenceRecorder:
             # Find the contour with the largest area (assumed to be the bait)
             largest_contour = max(contours, key=cv2.contourArea)
 
-            # Calculate the center coordinates of the bait
-            moments = cv2.moments(largest_contour)
-            if moments["m00"] != 0:
-                bait_center_x = int(moments["m10"] / moments["m00"])
-                bait_center_y = int(moments["m01"] / moments["m00"])
+            # Calculate the area of the largest contour
+            contour_area = cv2.contourArea(largest_contour)
 
-                # Extract the bait image from the frame
-                x, y, w, h = cv2.boundingRect(largest_contour)
-                bait_image = frame[y:y+h, x:x+w]
+            if contour_area > self.bait_threshold:
+                # Calculate the center coordinates of the bait
+                moments = cv2.moments(largest_contour)
+                if moments["m00"] != 0:
+                    bait_center_x = int(moments["m10"] / moments["m00"])
+                    bait_center_y = int(moments["m01"] / moments["m00"])
 
-                return (bait_center_x, bait_center_y), 1.0, bait_image
+                    # Extract the bait image from the frame
+                    x, y, w, h = cv2.boundingRect(largest_contour)
+                    bait_image = frame[y:y+h, x:x+w]
 
-        return None, 0, None
+                    # Get the average color of the bait image
+                    avg_color = np.mean(bait_image, axis=(0, 1)).astype(int)
+                    color_code = (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
+
+                    return (bait_center_x, bait_center_y), contour_area / self.bait_threshold, bait_image, color_code
+
+        return None, 0, None, None
 
     def run(self):
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
@@ -255,8 +270,9 @@ def main():
 
     print("Press 'Alt+R' to start/stop recording a fishing sequence.")
     print("Press 'Ctrl+C' to stop the script.")
-
-    recorder = FishingSequenceRecorder(output_dir, bait_template_paths)
+    
+    bait_threshold = 70  # Adjust the threshold value as needed
+    recorder = FishingSequenceRecorder(output_dir, bait_template_paths, bait_threshold)
     recorder.run()
 
 if __name__ == "__main__":
