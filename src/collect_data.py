@@ -1,4 +1,4 @@
-#see what is being recognized ffsssssssssss, add a check if the thing recognized is roun
+#hud off, graphics set to potato, water quality: 0, water reflections: 0
 import cv2
 import os
 import time
@@ -210,42 +210,43 @@ class FishingSequenceRecorder:
         red_mask2 = cv2.inRange(hsv_frame, lower_red2, upper_red2)
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
-        # Define the color range for the fishing rod
-        lower_rod = np.array([106, 109, 126])
-        upper_rod = np.array([142, 156, 183])
-
-        # Create a mask for the fishing rod color range
-        rod_mask = cv2.inRange(frame, lower_rod, upper_rod)
-
-        # Subtract the fishing rod mask from the red mask
-        red_mask = cv2.bitwise_and(red_mask, cv2.bitwise_not(rod_mask))
-
         # Find contours of the red regions
         contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        if len(contours) > 0:
+        # Filter contours based on aspect ratio and size
+        min_aspect_ratio = 1
+        max_aspect_ratio = 2
+        min_contour_area = 25   # Adjust based on the smallest expected half-circle bait size
+        max_contour_area = 1000  # Adjust based on the largest expected half-circle bait size
+
+        filtered_contours = []
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            aspect_ratio = float(w) / h
+            contour_area = cv2.contourArea(contour)
+
+            if min_aspect_ratio <= aspect_ratio <= max_aspect_ratio and min_contour_area <= contour_area <= max_contour_area:
+                filtered_contours.append(contour)
+
+        if len(filtered_contours) > 0:
             # Find the contour with the largest area (assumed to be the bait)
-            largest_contour = max(contours, key=cv2.contourArea)
+            largest_contour = max(filtered_contours, key=cv2.contourArea)
 
-            # Calculate the area of the largest contour
-            contour_area = cv2.contourArea(largest_contour)
+            # Calculate the center coordinates of the bait
+            moments = cv2.moments(largest_contour)
+            if moments["m00"] != 0:
+                bait_center_x = int(moments["m10"] / moments["m00"])
+                bait_center_y = int(moments["m01"] / moments["m00"])
 
-            if contour_area > self.bait_threshold:
-                # Calculate the center coordinates of the bait
-                moments = cv2.moments(largest_contour)
-                if moments["m00"] != 0:
-                    bait_center_x = int(moments["m10"] / moments["m00"])
-                    bait_center_y = int(moments["m01"] / moments["m00"])
+                # Extract the bait image from the frame
+                x, y, w, h = cv2.boundingRect(largest_contour)
+                bait_image = frame[y:y+h, x:x+w]
 
-                    # Extract the bait image from the frame
-                    x, y, w, h = cv2.boundingRect(largest_contour)
-                    bait_image = frame[y:y+h, x:x+w]
+                # Get the average color of the bait image
+                avg_color = np.mean(bait_image, axis=(0, 1)).astype(int)
+                color_code = (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
 
-                    # Get the average color of the bait image
-                    avg_color = np.mean(bait_image, axis=(0, 1)).astype(int)
-                    color_code = (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
-
-                    return (bait_center_x, bait_center_y), contour_area / self.bait_threshold, bait_image, color_code
+                return (bait_center_x, bait_center_y), cv2.contourArea(largest_contour) / self.bait_threshold, bait_image, color_code
 
         return None, 0, None, None
 
