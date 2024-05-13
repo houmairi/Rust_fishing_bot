@@ -1,4 +1,19 @@
 #hud off, graphics set to potato, water quality: 0, water reflections: 0
+
+#{ AI SUGGESTION ON WHAT INFO COULD BE PROVIDED AS WELL TO MAKE BAIT DETECTION BETTER
+#  "timestamp": 4.245351076126099,
+#  "frame_number": 127,
+#  "event": "Bait position",
+#  "bounding_box": [600, 323, 680, 363],
+#  "center_coordinates": [640, 343],
+#  "confidence_score": 0.85,
+#  "similarity": 0.6428571428571429,
+#  "color_code": [157, 164, 208],
+#  "context": {
+#    "water_clarity": "clear",
+#    "time_of_day": "daytime"
+#  }
+#}
 import cv2
 import os
 import time
