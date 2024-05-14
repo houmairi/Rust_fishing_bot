@@ -14,6 +14,8 @@
 #    "time_of_day": "daytime"
 #  }
 #}
+
+#choosing a base where 2x2 water is being used as the environment.
 import cv2
 import os
 import time
@@ -24,7 +26,7 @@ import pyautogui
 import threading
 
 class FishingSequenceRecorder:
-    def __init__(self, output_dir, bait_template_paths, bait_threshold=100):
+    def __init__(self, output_dir, bait_threshold=100):
         self.output_dir = output_dir
         self.out = None
         self.annotations = []
@@ -37,7 +39,7 @@ class FishingSequenceRecorder:
         self.stop_event = threading.Event()
         self.bait_position = None
         self.recording_resolution = (1280, 720)  # Set the recording resolution to 1280x720
-        self.bait_templates = [cv2.imread(path, 0) for path in bait_template_paths]  # Load the bait template images in grayscale
+        #self.bait_templates = [cv2.imread(path, 0) for path in bait_template_paths]  # Load the bait template images in grayscale
         self.bait_check_interval = 1  # Check bait position every 1 second
         self.last_bait_check_time = 0
         self.bait_threshold = bait_threshold
@@ -214,9 +216,9 @@ class FishingSequenceRecorder:
 
     def detect_bait_position(self, frame):
         # Define the color range for the red color
-        lower_red1 = np.array([0, 50, 50])
+        lower_red1 = np.array([0, 100, 100])
         upper_red1 = np.array([10, 255, 255])
-        lower_red2 = np.array([170, 50, 50])
+        lower_red2 = np.array([160, 100, 100])
         upper_red2 = np.array([180, 255, 255])
 
         # Create a mask for the red color range
@@ -261,7 +263,9 @@ class FishingSequenceRecorder:
                 avg_color = np.mean(bait_image, axis=(0, 1)).astype(int)
                 color_code = (int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
 
-                return (bait_center_x, bait_center_y), cv2.contourArea(largest_contour) / self.bait_threshold, bait_image, color_code
+                # Check if the average color falls within the expected range for red
+                if color_code[2] < 180:  # Adjust this threshold as needed
+                    return (bait_center_x, bait_center_y), cv2.contourArea(largest_contour) / self.bait_threshold, bait_image, color_code
 
         return None, 0, None, None
 
@@ -282,13 +286,13 @@ def main():
     output_dir = "fishing_sequences"
     os.makedirs(output_dir, exist_ok=True)
 
-    bait_template_paths = ["fishing_bait.png", "fishing_bait2.png", "fishing_bait3.png"]  # Provide the paths to multiple bait template images
+    #bait_template_paths = ["fishing_bait.png", "fishing_bait2.png", "fishing_bait3.png"]  # Provide the paths to multiple bait template images
 
     print("Press 'Alt+R' to start/stop recording a fishing sequence.")
     print("Press 'Ctrl+C' to stop the script.")
     
     bait_threshold = 70  # Adjust the threshold value as needed
-    recorder = FishingSequenceRecorder(output_dir, bait_template_paths, bait_threshold)
+    recorder = FishingSequenceRecorder(output_dir, bait_threshold)
     recorder.run()
 
 if __name__ == "__main__":
