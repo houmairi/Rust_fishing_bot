@@ -31,40 +31,52 @@ class ScreenRecorder:
         logger.info("Recording stopped.")
 
     def record_frame(self):
-        if self.recording:
-            with mss.mss() as sct:
-                monitor = sct.monitors[0]
-                left, top, right, bottom = self.crop_percentages
-                crop_left = int(monitor["width"] * left / 100)
-                crop_top = int(monitor["height"] * top / 100)
-                crop_right = int(monitor["width"] * (1 - right / 100))
-                crop_bottom = int(monitor["height"] * (1 - bottom / 100))
+        with mss.mss() as sct:
+            # Get the monitor to capture (assuming you want to capture the primary monitor)
+            monitor = sct.monitors[1]  # Change the index to select the desired monitor
 
-                logger.info(f"Crop coordinates: left={crop_left}, top={crop_top}, right={crop_right}, bottom={crop_bottom}")
+            left, top, right, bottom = self.crop_percentages
 
-                frame = np.array(sct.grab({
-                    "left": crop_left,
-                    "top": crop_top,
-                    "width": crop_right - crop_left,
-                    "height": crop_bottom - crop_top
-                }))
+            # Calculate crop coordinates relative to the selected monitor
+            crop_left = int(monitor["width"] * left / 100)
+            crop_top = int(monitor["height"] * top / 100)
+            crop_right = int(monitor["width"] * (100 - right) / 100)
+            crop_bottom = int(monitor["height"] * (100 - bottom) / 100)
 
-                logger.info(f"Captured frame shape: {frame.shape}")
+            # Ensure crop coordinates are within valid range
+            crop_left = max(0, min(crop_left, monitor["width"]))
+            crop_top = max(0, min(crop_top, monitor["height"]))
+            crop_right = max(crop_left, min(crop_right, monitor["width"]))
+            crop_bottom = max(crop_top, min(crop_bottom, monitor["height"]))
 
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                frame = cv2.resize(frame, self.resolution, interpolation=cv2.INTER_LINEAR)
+            logger.info(f"Crop coordinates: left={crop_left}, top={crop_top}, right={crop_right}, bottom={crop_bottom}")
 
-                logger.info(f"Resized frame shape: {frame.shape}")
+            frame = np.array(sct.grab({
+                "left": monitor["left"] + crop_left,
+                "top": monitor["top"] + crop_top,
+                "width": crop_right - crop_left,
+                "height": crop_bottom - crop_top
+            }))
 
-                self.video_writer.write(frame)
+            logger.info(f"Captured frame shape: {frame.shape}")
+
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            # Resize the frame to the desired resolution
+            frame = cv2.resize(frame, self.resolution, interpolation=cv2.INTER_LINEAR)
+
+            logger.info(f"Resized frame shape: {frame.shape}")
+
+            self.video_writer.write(frame)
 
 def on_press(key):
-    global recorder
+    global recorder, running
     if key == keyboard.KeyCode.from_char('p'):
         if not recorder.recording:
             recorder.start_recording()
         else:
             recorder.stop_recording()
+            running = False
             return False
 
 def main():
@@ -72,22 +84,27 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
 
     fps = 30.0
-    resolution = (1920, 1080)
-    crop_percentages = (10, 20, 5, 15)  # Left, Top, Right, Bottom
+    resolution = (2560, 1440)
+    crop_percentages = (10, 10, 15, 5)  # Left, Top, Right, Bottom
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     output_path = os.path.join(output_dir, f"screen_recording_{timestamp}.mp4")
 
-    global recorder
+    global recorder, running
     recorder = ScreenRecorder(output_path, fps=fps, resolution=resolution, crop_percentages=crop_percentages)
+    running = True
 
     logger.info("Press 'p' to start/stop the recording.")
 
-    with keyboard.Listener(on_press=on_press) as listener:
-        listener.join()
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
 
-    while recorder.recording:
-        recorder.record_frame()
+    while running:
+        if recorder.recording:
+            recorder.record_frame()
+        time.sleep(1 / fps)
+
+    listener.stop()
 
 if __name__ == "__main__":
     main()
