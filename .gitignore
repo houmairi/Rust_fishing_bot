@@ -9,3 +9,4 @@ data/fishing_data/fishing_caught_images/
 src/ml/*.npz
 src/ml/*.pkl
 src/*.png
+src/bait_templates
