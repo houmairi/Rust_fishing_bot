@@ -10,3 +10,4 @@ src/ml/*.npz
 src/ml/*.pkl
 src/*.png
 src/bait_templates
+src/screen_recordings
