@@ -22,7 +22,30 @@ class ScreenRecorder:
     def start_recording(self):
         self.recording = True
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        self.video_writer = cv2.VideoWriter(self.output_path, fourcc, self.fps, self.resolution)
+
+        # Get the dimensions of the cropped region
+        with mss.mss() as sct:
+            monitor = sct.monitors[1]  # Change the index to select the desired monitor
+            left, top, right, bottom = self.crop_percentages
+
+            # Calculate crop coordinates relative to the selected monitor
+            crop_left = int(monitor["width"] * left / 100)
+            crop_top = int(monitor["height"] * top / 100)
+            crop_right = int(monitor["width"] * (100 - right) / 100)
+            crop_bottom = int(monitor["height"] * (100 - bottom) / 100)
+
+            # Ensure crop coordinates are within valid range
+            crop_left = max(0, min(crop_left, monitor["width"]))
+            crop_top = max(0, min(crop_top, monitor["height"]))
+            crop_right = max(crop_left, min(crop_right, monitor["width"]))
+            crop_bottom = max(crop_top, min(crop_bottom, monitor["height"]))
+
+            # Calculate the dimensions of the cropped region
+            cropped_width = crop_right - crop_left
+            cropped_height = crop_bottom - crop_top
+
+        # Set the video writer's dimensions to the cropped region's dimensions
+        self.video_writer = cv2.VideoWriter(self.output_path, fourcc, self.fps, (cropped_width, cropped_height))
         logger.info(f"Recording started. Saving to: {self.output_path}")
 
     def stop_recording(self):
@@ -62,11 +85,6 @@ class ScreenRecorder:
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-            # Resize the frame to the desired resolution
-            frame = cv2.resize(frame, self.resolution, interpolation=cv2.INTER_LINEAR)
-
-            logger.info(f"Resized frame shape: {frame.shape}")
-
             self.video_writer.write(frame)
 
 def on_press(key):
@@ -85,7 +103,7 @@ def main():
 
     fps = 30.0
     resolution = (2560, 1440)
-    crop_percentages = (10, 10, 15, 5)  # Left, Top, Right, Bottom
+    crop_percentages = (50, 15, 20, 0)  # Left, Top, Right, Bottom
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     output_path = os.path.join(output_dir, f"screen_recording_{timestamp}.mp4")
