@@ -28,7 +28,8 @@ def load_data(data_directory):
 def preprocess_image(image):
     # Preprocess the image (resize, normalize, etc.)
     # Modify this function to match the exact dimensions and color channels used during training
-    preprocessed_image = cv2.resize(image, (2560, 1440))  # Adjust the size to match the training preprocessing
+    preprocessed_image = cv2.resize(image, (320, 420))  # Adjust the size to match the training preprocessing
+    preprocessed_image = cv2.cvtColor(preprocessed_image, cv2.COLOR_BGR2GRAY)
     preprocessed_image = preprocessed_image.flatten()  # Flatten the image
     return preprocessed_image
 
@@ -42,8 +43,8 @@ def predict_label(model, image):
     return predicted_label[0]
 
 if __name__ == '__main__':
-    model_directory = 'data2process/iteration_20240505_123552'  # Replace with the actual directory path of the trained model
-    test_data_directory = 'data2process/iteration_20240505_125540'  # Replace with the actual directory path of the preprocessed test data
+    model_directory = 'labeled_data/iteration_20240516_130408'  # Replace with the actual directory path of the trained model
+    test_data_directory = 'labeled_data/trainingdata/iteration_20240516_130442'  # Replace with the actual directory path of the preprocessed test data
 
     # Load the trained model and label encoder
     model_path = os.path.join(model_directory, 'trained_model.pkl')
@@ -53,20 +54,6 @@ if __name__ == '__main__':
 
     # Load the preprocessed test data
     test_images, test_labels = load_data(test_data_directory)
-
-    # Visualize the key inputs and predictions
-    for image, true_label in zip(test_images, test_labels):
-        predicted_label_encoded = predict_label(model, image)
-        predicted_label = label_encoder.inverse_transform([predicted_label_encoded])[0]
-
-        # Display the image
-        cv2.imshow('Frame', image)
-        cv2.waitKey(100)  # Adjust the delay as needed
-
-        # Print the true and predicted labels
-        print(f"True Label: {true_label}, Predicted Label: {predicted_label}")
-
-    cv2.destroyAllWindows()
 
     # Make predictions for evaluation
     predictions = []
