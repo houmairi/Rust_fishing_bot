@@ -7,7 +7,7 @@ import mss
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class ScreenRecorder:
@@ -18,10 +18,15 @@ class ScreenRecorder:
         self.crop_percentages = crop_percentages
         self.recording = False
         self.video_writer = None
+        self.frame_counter = 0
+        self.start_time = 0
+        self.time_per_frame = 1 / self.fps  # Time per frame in seconds
 
     def start_recording(self):
         self.recording = True
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        self.frame_counter = 0
+        self.start_time = time.time()
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
         # Get the dimensions of the cropped region
         with mss.mss() as sct:
@@ -46,14 +51,28 @@ class ScreenRecorder:
 
         # Set the video writer's dimensions to the cropped region's dimensions
         self.video_writer = cv2.VideoWriter(self.output_path, fourcc, self.fps, (cropped_width, cropped_height))
+        
+        # Check if the video writer is initialized successfully
+        if not self.video_writer.isOpened():
+            logger.error("Failed to initialize VideoWriter. Please check codec configuration and library dependencies.")
+            self.recording = False
+            return
+
         logger.info(f"Recording started. Saving to: {self.output_path}")
+        logger.info(f"VideoWriter FPS set to: {self.fps}")
 
     def stop_recording(self):
+        if self.video_writer:
+            self.video_writer.release()
         self.recording = False
-        self.video_writer.release()
         logger.info("Recording stopped.")
+        logger.info(f"Total frames recorded: {self.frame_counter}")
+        logger.info(f"Actual recording duration: {time.time() - self.start_time:.2f} seconds")
 
     def record_frame(self):
+        if not self.recording or self.video_writer is None:
+            return
+
         with mss.mss() as sct:
             # Get the monitor to capture (assuming you want to capture the primary monitor)
             monitor = sct.monitors[1]  # Change the index to select the desired monitor
@@ -72,8 +91,6 @@ class ScreenRecorder:
             crop_right = max(crop_left, min(crop_right, monitor["width"]))
             crop_bottom = max(crop_top, min(crop_bottom, monitor["height"]))
 
-            logger.info(f"Crop coordinates: left={crop_left}, top={crop_top}, right={crop_right}, bottom={crop_bottom}")
-
             frame = np.array(sct.grab({
                 "left": monitor["left"] + crop_left,
                 "top": monitor["top"] + crop_top,
@@ -81,11 +98,12 @@ class ScreenRecorder:
                 "height": crop_bottom - crop_top
             }))
 
-            logger.info(f"Captured frame shape: {frame.shape}")
-
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
             self.video_writer.write(frame)
+            self.frame_counter += 1
+
+            logger.debug(f"Frame {self.frame_counter} captured and written.")
 
 def on_press(key):
     global recorder, running
@@ -106,7 +124,7 @@ def main():
     crop_percentages = (50, 15, 20, 0)  # Left, Top, Right, Bottom
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    output_path = os.path.join(output_dir, f"screen_recording_{timestamp}.mp4")
+    output_path = os.path.join(output_dir, f"screen_recording_{timestamp}.avi")  # Changed to .avi for XVID codec
 
     global recorder, running
     recorder = ScreenRecorder(output_path, fps=fps, resolution=resolution, crop_percentages=crop_percentages)
@@ -117,10 +135,21 @@ def main():
     listener = keyboard.Listener(on_press=on_press)
     listener.start()
 
+    frame_time_start = None
+
     while running:
         if recorder.recording:
+            if frame_time_start is None:
+                frame_time_start = time.time()
+
             recorder.record_frame()
-        time.sleep(1 / fps)
+            frame_time_start += recorder.time_per_frame
+            time_to_sleep = frame_time_start - time.time()
+            
+            if time_to_sleep > 0:
+                time.sleep(time_to_sleep)
+            else:
+                logger.warning("Frame processing is taking longer than expected.")
 
     listener.stop()
 

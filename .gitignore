@@ -11,3 +11,4 @@ src/ml/*.pkl
 src/*.png
 src/bait_templates
 src/screen_recordings
+src/ml/labeled_data
