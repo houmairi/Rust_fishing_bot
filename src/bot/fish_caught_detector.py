@@ -54,7 +54,7 @@ class FishCaughtDetector:
             
             # Apply OCR using Tesseract
             text = pytesseract.image_to_string(image)
-            print(text)
+            #print(text)
             return text
         except pytesseract.TesseractError as e:
             print(f"Tesseract OCR error: {str(e)}")

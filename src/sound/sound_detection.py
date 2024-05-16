@@ -107,7 +107,7 @@ class FishBiteDetector():
                 elif len(audio_segment) > len(reference_sound):
                     # Truncate audio_segment to match the length of reference_sound
                     audio_segment = audio_segment[:len(reference_sound)]
-                
+                # 
                 # Compute cross-correlation using FFT
                 correlation = np.fft.irfft(np.fft.rfft(audio_segment) * np.conj(np.fft.rfft(reference_sound)))
                 

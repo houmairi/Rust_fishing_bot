@@ -98,7 +98,7 @@ class FishingBot:
                 break
 
             # Add a small delay between each iteration
-            time.sleep(0.1)
+            time.sleep(1)  # Predict the state every second
         
     def is_fish_caught(self):
         start_time = time.time()
@@ -118,7 +118,7 @@ class FishingBot:
                 if caught_fish:
                     return caught_fish
             except Exception as e:
-                print(f"An error occurred during the OCR process: {str(e)}")
+                pass
             
             # Add a small delay between each scan
             time.sleep(0.1)
