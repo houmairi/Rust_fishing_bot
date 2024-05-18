@@ -47,8 +47,8 @@ def predict_label(model, image):
     return predicted_label[0]
 
 if __name__ == '__main__':
-    model_directory = 'labeled_data/iteration_20240516_190702'  # Replace with the actual directory path of the trained model
-    test_data_directory = 'labeled_data/trainingdata/iteration_20240516_190916'  # Replace with the actual directory path of the preprocessed test data
+    model_directory = 'labeled_data/abgespeckt/iteration_20240518_150914'  # Replace with the actual directory path of the trained model
+    test_data_directory = 'labeled_data/trainingdata/iteration_20240516_130442'  # Replace with the actual directory path of the preprocessed test data
 
     # Load the trained model and label encoder
     model_path = os.path.join(model_directory, 'trained_model.keras')

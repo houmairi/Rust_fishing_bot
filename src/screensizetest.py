@@ -23,7 +23,8 @@ def main():
 
         while True:
             # Capture the screen region
-            screen = sct.grab({'left': recording_x, 'top': recording_y, 'width': recording_width, 'height': recording_height})
+            screen = sct.grab({'left': recording_x, 'top': recording_y, 
+            'width': recording_width, 'height': recording_height})
             frame = np.array(screen)
 
             # Display the captured frame

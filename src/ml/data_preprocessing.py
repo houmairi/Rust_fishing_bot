@@ -42,8 +42,8 @@ def preprocess_data(high_directory, low_directory, iteration_directory):
     print(f"Preprocessing completed. Frames and metadata saved to '{iteration_directory}'.")
 
 if __name__ == '__main__':
-    high_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/labeled_data/trainingdata/high'
-    low_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/labeled_data/trainingdata/low'
+    high_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/labeled_data/abgespeckt/high'
+    low_directory = 'C:/Users/Niko/Documents/Repositorys/rust-fishing-bot/src/ml/labeled_data/abgespeckt/low'
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     iteration_directory = os.path.join(os.path.dirname(high_directory), f"iteration_{timestamp}")

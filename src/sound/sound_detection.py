@@ -16,6 +16,7 @@ class FishBiteDetector():
         self.reference_sounds = []
         self.sample_rate = None
         self.clear_sound_data = None
+        self.stop_event = threading.Event()
         
         # Load the clear sound file
         clear_sound_file = os.path.join(reference_dir, "fOTH_cue_water1.wav")
@@ -50,11 +51,16 @@ class FishBiteDetector():
 
     def start_detection(self):
         self.is_running = True
+        self.stop_event.clear()
         self.audio_thread = threading.Thread(target=self._record_and_detect_audio)
         self.audio_thread.start()
 
     def stop_detection(self):
         self.is_running = False
+        self.stop_event.set()
+        threading.Thread(target=self._stop_audio_thread).start()
+
+    def _stop_audio_thread(self):
         if self.audio_thread:
             self.audio_thread.join()
 
@@ -69,7 +75,7 @@ class FishBiteDetector():
         with sc.get_microphone(id=str(sc.default_speaker().name), include_loopback=True).recorder(samplerate=self.sample_rate) as mic:
             print("Starting audio detection from speakers...")
 
-            while self.is_running:
+            while not self.stop_event.is_set():
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", category=sc.SoundcardRuntimeWarning)
                     # Record audio from the speakers

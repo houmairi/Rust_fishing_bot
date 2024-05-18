@@ -62,7 +62,7 @@ def preprocess_frame(frame):
 
 if __name__ == '__main__':
     # Pfad zum Verzeichnis mit dem trainierten Modell und Label Encoder
-    model_directory = 'labeled_data\\iteration_20240516_190702'
+    model_directory = 'labeled_data\\abgespeckt\\iteration_20240518_150914'
 
     # Lade das trainierte Modell und den Label Encoder
     model_path = os.path.join(model_directory, 'trained_model.keras')

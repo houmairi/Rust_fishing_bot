@@ -7,15 +7,17 @@ sys.path.insert(0, project_root)
 
 from src.sound.sound_detection import FishBiteDetector
 from src.bot.fish_caught_detector import FishCaughtDetector
-from src.bot.game_interaction import GameInteraction  # Import the GameInteraction class
+from src.bot.game_interaction import GameInteraction
 import keyboard
 import joblib
 import cv2
 import numpy as np
+from tensorflow.keras.models import load_model
+from mss import mss
 
 class FishingBot:
     def __init__(self, game_interaction):
-        self.game_interaction = GameInteraction()
+        self.game_interaction = game_interaction
         self.fish_bite_detector = FishBiteDetector()
         self.is_running = False
         self.fish_caught_detector = FishCaughtDetector()
@@ -23,39 +25,30 @@ class FishingBot:
         self.label_encoder = None
 
     def load_model(self, model_path, label_encoder_path):
-        self.model = joblib.load(model_path)
+        self.model = load_model(model_path)
         self.label_encoder = joblib.load(label_encoder_path)
 
-    def predict(self, frame):
-        # Preprocess the frame
-        preprocessed_frame = self.preprocess_frame(frame)
-
-        # Make predictions using the loaded model
-        predicted_label_encoded = self.model.predict([preprocessed_frame])
-        predicted_label = self.label_encoder.inverse_transform(predicted_label_encoded)[0]
-
-        return predicted_label
-
     def preprocess_frame(self, frame):
-        # Resize the frame to 800x600
-        resized_frame = cv2.resize(frame, (2560, 1440))
-
-        # Convert the frame to grayscale if needed
+        target_size = (320, 420)  # Adjust the target size as needed
+        resized_frame = cv2.resize(frame, target_size)
         gray_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
+        normalized_frame = gray_frame / 255.0  # Normalize pixel values
+        expanded_frame = np.expand_dims(normalized_frame, axis=0)
+        expanded_frame = np.expand_dims(expanded_frame, axis=-1)
+        return expanded_frame
 
-        # Flatten the frame to a 1D array
-        flattened_frame = gray_frame.flatten()
-
-        return flattened_frame
+    def predict_tension(self, frame):
+        preprocessed_frame = self.preprocess_frame(frame)
+        predicted_label_encoded = self.model.predict(preprocessed_frame)
+        predicted_label = self.label_encoder.inverse_transform(predicted_label_encoded.argmax(axis=1))[0]
+        return predicted_label
 
     def start_fishing(self):
         self.is_running = True
         print("Fishing bot started. Press 'Esc' to stop.")
+        self.fish_bite_detector.start_detection()
         self.game_recognition_loop()
-        
-        # Stop the sound detection when the minigame starts
-        self.fish_bite_detector.stop_detection()
-        
+
         self.stop_fishing()
 
     def stop_fishing(self):
@@ -74,54 +67,54 @@ class FishingBot:
                 self.stop_fishing()
                 break
 
-            # Capture the game screen
-            frame = self.game_interaction.capture_game_screen()
-
+            frame = self.capture_game_region()  # Use the custom method to capture the specific region
             if frame is None:
                 print("Failed to capture the game screen.")
                 continue
 
-            # Make predictions using the loaded model
-            predicted_label = self.predict(frame)
+            predicted_tension = self.predict_tension(frame)
+            print(f"Predicted tension: {predicted_tension}")  # Print the predicted tension every second
 
-            # Perform actions based on the predicted label
-            if predicted_label == "Fish moves to the left":
-                self.game_interaction.perform_action("press_d")
-            elif predicted_label == "Fish moves to the right":
-                self.game_interaction.perform_action("press_a")
-            # Add more conditions for other labels and corresponding actions
+            if predicted_tension == "low":
+                self.game_interaction.press_key("s")
+            elif predicted_tension == "high":
+                self.game_interaction.release_key("s")
+                time.sleep(3)  # Wait for 3 seconds before pressing "s" again
+                self.game_interaction.press_key("s")
 
-            # Check if a fish is caught using OCR
-            caught_fish = self.is_fish_caught()
+            caught_fish = self.is_fish_caught(frame)  # Pass the captured frame to is_fish_caught()
             if caught_fish:
                 print(f"Congratulations! You caught a {caught_fish}!")
                 break
 
-            # Add a small delay between each iteration
-            time.sleep(1)  # Predict the state every second
-        
-    def is_fish_caught(self):
-        start_time = time.time()
-        timeout = 15  # Maximum time to scan for a fish caught (in seconds)
-        
-        while time.time() - start_time < timeout:
-            # Capture the game screen
-            screen_image = self.game_interaction.capture_game_screen()
+            time.sleep(1)  # Predict the tension every second
             
-            if screen_image is None:
-                print("Failed to capture the game screen.")
-                return None
-            
-            try:
-                # Check if a fish is caught using the FishCaughtDetector
-                caught_fish = self.fish_caught_detector.is_fish_caught(screen_image)
-                if caught_fish:
-                    return caught_fish
-            except Exception as e:
-                pass
-            
-            # Add a small delay between each scan
-            time.sleep(0.1)
+    def is_fish_caught(self, frame):
+        try:
+            caught_fish = self.fish_caught_detector.is_fish_caught(frame)
+            if caught_fish:
+                return caught_fish
+        except Exception as e:
+            pass
         
-        # If no fish is caught within the timeout, return None
         return None
+    
+    def capture_game_region(self):
+        with mss() as sct:
+            # Get the primary monitor dimensions
+            monitor = sct.monitors[0]
+            monitor_width = monitor['width']
+            monitor_height = monitor['height']
+
+            # Calculate the actual pixel values based on percentages
+            recording_x = int(monitor_width * 31 / 100)
+            recording_y = int(monitor_height * 0 / 100)
+            recording_width = int(monitor_width * 27.2 / 100)
+            recording_height = int(monitor_height * 56 / 100)
+
+            # Capture the screen region
+            screen = sct.grab({'left': recording_x, 'top': recording_y, 
+            'width': recording_width, 'height': recording_height})
+            frame = np.array(screen)
+
+            return frame

@@ -76,7 +76,7 @@ def train_model(images, labels):
     return model, label_encoder
 
 if __name__ == '__main__':
-    iteration_directory = 'labeled_data\iteration_20240516_190702'
+    iteration_directory = 'labeled_data/abgespeckt/iteration_20240518_150914'
     images, labels = load_data(iteration_directory)
 
     model, label_encoder = train_model(images, labels)
