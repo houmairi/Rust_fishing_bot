@@ -1,208 +1,95 @@
-# Fishing Bot - Bachelor's Thesis Project
+# Rust Fishing Bot
 
-ROI Coordinates:
-X: 1199, Y: 266, Width: 754, Height: 1141
+This repository contains a Rust Fishing Bot that automates the fishing process in the game Rust. The bot utilizes computer vision, machine learning, and audio processing techniques to detect fish bites, analyze fishing rod movements, and interact with the game.
 
-**Disclaimer:** This project is for educational purposes only.
+**Important Notes:**
+- This project was made for a bachelor's thesis.
+- There is no model nor data provided in this repository, thus making it not useful for people looking for a functioning tool.
+- This project is done for educational purposes only.
 
-This project aims to develop an automated fishing bot for the game "Rust" using machine learning techniques. The bot will detect when a fish bites the hook and perform the appropriate counter-movements to catch the fish successfully.
+## Features
 
-## Current Progress
+- Automated fishing in Rust
+- Fish bite detection using audio processing
+- Fishing rod movement analysis using computer vision
+- Machine learning model for predicting fishing tension
+- Game interaction and control
 
-- Implemented the `FishingBot` class that orchestrates the fishing process.
-- Developed the `GameInteraction` class to handle interactions with the game, including:
-   - Checking if the game is running.
-   - Capturing the game screen.
-   - Focusing the game window.
-   - Moving the mouse to the fishing spot.
-   - Casting the fishing line.
-   - Observing the fishing state (fish movement and rod shake).
-   - Performing counter-movements based on the model's predictions.
-- Created the `FishBiteDetector` class to detect fish bites using sound analysis:
-   - Recording audio from the game's speakers.
-   - Processing the audio data to detect the fish bite sound cue.
-   - Triggering the fishing minigame when a fish bite is detected.
-- Implemented data preprocessing functions in `data_preprocessing.py` to load and preprocess the fishing sequences and labels.
-- Developed the `FishingPredictor` class in `model_inference.py` to load a pre-trained model and make predictions for counter-movements based on the observed fishing state.
-- Created `model_training.py` to train a Random Forest classifier on the fishing data and save the trained model.
-- Implemented a basic LSTM model in `train_model.py` for sequence prediction.
-- Developed `test_fishing_bot.py` to test the fishing bot functionality, including audio detection and game interaction.
+## Requirements
 
-## Planned Functions
-
-- Enhance the `FishBiteDetector` class:
-   - Improve the accuracy of fish bite detection by applying audio enhancement techniques and optimizing the similarity threshold.
-   - Implement noise reduction and filtering to minimize false positives.
-- Expand the `GameInteraction` class:
-   - Add methods to detect when a fish is caught or unhooked based on game indicators.
-   - Improve the efficiency of game screen capturing and processing.
-- Refine the machine learning model:
-   - Experiment with different model architectures and hyperparameters to improve prediction accuracy.
-   - Explore advanced techniques such as ensemble methods or deep learning models.
-   - Enhance the data preprocessing pipeline to handle more diverse fishing scenarios.
-- Integrate the trained model into the `FishingPredictor` class:
-   - Load the trained model and use it for real-time predictions during the fishing minigame.
-   - Optimize the prediction process for low-latency response.
-- Conduct extensive testing and evaluation:
-   - Test the fishing bot in various fishing scenarios and assess its performance.
-   - Evaluate the accuracy, response time, and success rate of the bot.
-   - Identify and address any limitations or edge cases.
-- Implement error handling and logging:
-   - Add robust error handling mechanisms to gracefully handle exceptions and unexpected situations.
-   - Incorporate logging functionality to track the bot's actions and diagnose issues.
-- Enhance the user interface and configuration:
-   - Develop a user-friendly interface to control the bot's settings and preferences.
-   - Allow users to customize the bot's behavior and adjust parameters as needed.
-
-## Decision Tree Visualization
-
-The following decision tree represents the counter-movement prediction process based on the observed fishing state:
-
-```mermaid
-graph TD;
-    A[Fish Detected] --> S[Press 'S'] --> B{Is the fish moving?};
-    B -->|Yes| C{Moving Left or Right?};
-    C -->|Left| D{Rod Shake < 50?};
-    C -->|Right| E{Rod Shake < 50?};
-    B -->|No| F{Rod Shake < 50?};
-   
-    D -->|Yes| G[Hold 'D'];
-    D -->|No| H[Release 'D'];
-    H --> I{Rod Shake >= 50?};
-    I -->|Yes| J[Hold 'S'];
-    I -->|No| K[Release 'S'];
-   
-    E -->|Yes| L[Hold 'A'];
-    E -->|No| M[Release 'A'];
-    M --> N{Rod Shake >= 50?};
-    N -->|Yes| O[Hold 'S'];
-    N -->|No| P[Release 'S'];
-   
-    F -->|Yes| Q[Hold 'S'];
-    F -->|No| R[Rod may break];
-```
-
-```mermaid
-graph TD;
-    A[Fish Detected] --> S[Press 'S'] --> B{Is the rod tension high?};
-    B -->|Yes| C[Release 'S'] --> D{Is the fish moving?};
-    B -->|No| D;
-    D -->|Yes| E{Moving Left or Right?};
-    E -->|Left| F[Press 'D'];
-    E -->|Right| G[Press 'A'];
-    D -->|No| H[Press 'S'];
-```
-
-```mermaid
-graph LR
-    A[Datensammlung] --> B[Datenverarbeitung]
-    B --> C[Modelltraining]
-    C --> D[Entscheidungsfindung]
-    D --> E[Aktionsausführung]
-    E --> F[Feedback und Verbesserung]
-    F --> C
-```
-
-```mermaid
-graph TD;
-    A[Fish Detected] --> B{Is the fish moving?};
-    
-    B -->|No| C[Press 'S' to reel in];
-    
-    C --> D{Is the rod tension high?};
-    
-    D -->|Yes| E[Release 'S' to reduce tension] --> B;
-    
-    D -->|No| F{Is the fish centered?};
-    
-    F -->|Yes| C;
-    
-    F -->|No| G{Moving Left or Right?};
-    
-    B -->|Yes| G;
-    
-    G -->|Left| H[Press 'D' to pull left];
-    
-    G -->|Right| I[Press 'A' to pull right];
-    
-    H --> J{Is the rod tension high?};
-    
-    I --> J;
-    
-    J -->|Yes| K[Release 'A' or 'D' to reduce tension] --> B;
-    
-    J -->|No| L{Is the fish centered?};
-    
-    L -->|Yes| M{Reel in faster?};
-    
-    M -->|Yes| N[Press 'S' while holding 'A' or 'D'] --> B;
-    
-    M -->|No| C;
-    
-    L -->|No| G;
-```
-
-The decision tree illustrates the key decision points and counter-movements based on the fish's movement direction and the intensity of the rod shake. The machine learning model will learn these decision rules from the labeled training data and make predictions accordingly during the fishing minigame.
-
-## Future Work
-
-- Explore advanced audio processing techniques to enhance fish bite detection accuracy.
-- Investigate the use of computer vision techniques to detect visual cues and improve the bot's decision-making.
-- Expand the bot's functionality to handle different types of fish and fishing environments.
-- Optimize the bot's performance and resource utilization for long-term autonomous operation.
-- Conduct user studies and gather feedback to improve the bot's usability and effectiveness.
-
-Stay tuned for updates and further enhancements to the Fishing Bot project!
+- Python 3.x
+- OpenCV
+- TensorFlow
+- Keras
+- scikit-learn
+- soundcard
+- soundfile
+- librosa
+- noisereduce
+- pyautogui
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/your-username/fishing-bot.git`
-2. Install the required dependencies: `pip install -r requirements.txt`
-3. Set up the game environment and configure the necessary settings.
+1. Clone the repository:
+
+```
+git clone https://github.com/your-username/rust-fishing-bot.git
+```
+
+2. Install the required dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+3. Download the necessary data files and place them in the appropriate directories.
 
 ## Usage
 
-1. Run the `test_fishing_bot.py` script to start the fishing bot: `python test_fishing_bot.py`
-2. The bot will automatically detect the game window and start the fishing process when a fish bite is detected.
-3. Observe the bot's performance and monitor the console output for any relevant information or errors.
+1. Run the main script to start the fishing bot:
+
+```
+python src/main.py
+```
+
+2. The bot will automatically detect the Rust game window and start the fishing process.
+
+3. The bot will listen for fish bite sounds, analyze the fishing rod movements, and predict the tension to control the fishing minigame.
+
+4. Press 'Esc' to stop the bot.
+
+## Data Collection
+
+The `src/collect_data.py` script can be used to collect fishing data by recording the game screen and audio. The collected data can be used for training and testing the machine learning models.
+
+## Machine Learning
+
+The `src/ml` directory contains scripts for data preprocessing, model training, and model evaluation. The trained models are used by the fishing bot to predict the fishing tension based on the captured game frames.
+
+## Bot Functionality
+
+The `src/bot` directory contains the main functionality of the fishing bot, including fish bite detection, fish caught detection, and game interaction.
+
+## Sound Processing
+
+The `src/sound` directory contains scripts for audio processing, including fish bite detection using sound cues.
+
+## Video Processing
+
+The `src/video` directory contains scripts for video processing, including fish movement detection and fishing rod shake analysis.
+
+## Contributing
+
+As this project was created for a bachelor's thesis and is for educational purposes only, contributions are not actively sought. However, if you have any suggestions or feedback, feel free to open an issue.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
 
-Happy fishing!
+## Acknowledgments
 
-## Dependencies
+- The Rust game developers for creating an engaging fishing minigame.
+- The open-source community for providing valuable libraries and tools.
+- The bachelor's thesis supervisor for guidance and support throughout the project.
 
-```
-numpy
-opencv-python
-scikit-learn
-joblib
-tensorflow
-soundcard
-soundfile
-librosa
-noisereduce
-scipy
-pytesseract
-keyboard
-mss
-pyautogui
-pynput
-
-- `numpy`: Used for numerical operations and array manipulation.
-- `opencv-python`: Used for image processing and computer vision tasks.
-- `scikit-learn`: Used for machine learning algorithms and utilities.
-- `joblib`: Used for saving and loading trained models.
-- `tensorflow`: Used for deep learning and loading trained models.
-- `soundcard`: Used for recording audio from speakers.
-- `soundfile`: Used for reading and writing audio files.
-- `librosa`: Used for audio processing and feature extraction.
-- `noisereduce`: Used for noise reduction in audio signals.
-- `scipy`: Used for signal processing and filtering.
-- `pytesseract`: Used for optical character recognition (OCR) to extract text from images.
-- `keyboard`: Used for detecting keyboard events and simulating key presses.
-- `mss`: Used for capturing screenshots and screen regions.
-- `pyautogui`: Used for GUI automation and mouse/keyboard control.
-- `pynput`: Used for keyboard and mouse event handling.
+Please note that this repository does not contain the trained models or the dataset used in the project. The purpose of this repository is to showcase the code and techniques used in the development of the Rust Fishing Bot as part of a bachelor's thesis.

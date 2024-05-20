@@ -6,7 +6,6 @@ from threading import Event
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
-#from bot.fish_caught_detector import FishCaughtDetector
 from src.bot.fishing_bot import FishingBot
 from src.bot.game_interaction import GameInteraction
 from src.sound.sound_detection import FishBiteDetector
@@ -49,13 +48,13 @@ def main():
                 fishing_bot.stop_fishing()
                 is_fishing_active = False
                 print("Sound cue recognition will repeat.")
-                fish_bite_detector.start_detection()  # Restart sound detection after the minigame ends
             except Exception as e:
                 print(f"An error occurred during the fishing process: {str(e)}")
                 fishing_bot.stop_fishing()
                 is_fishing_active = False
                 print("Sound cue recognition will repeat.")
-                fish_bite_detector.start_detection()  # Restart sound detection after the minigame ends
+            finally:
+                fish_bite_detector.start_detection()  # Restart sound detection after the fishing minigame ends
 
     fish_bite_detector.on_sound_cue_recognized = on_sound_cue_recognized
 
