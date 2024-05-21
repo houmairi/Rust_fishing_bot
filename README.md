@@ -28,35 +28,11 @@ This repository contains a Rust Fishing Bot that automates the fishing process i
 - noisereduce
 - pyautogui
 
-## Installation
+1. The bot will automatically detect the Rust game window and start the fishing process.
 
-1. Clone the repository:
+2. The bot will listen for fish bite sounds, analyze the fishing rod movements, and predict the tension to control the fishing minigame.
 
-```
-git clone https://github.com/your-username/rust-fishing-bot.git
-```
-
-2. Install the required dependencies:
-
-```
-pip install -r requirements.txt
-```
-
-3. Download the necessary data files and place them in the appropriate directories.
-
-## Usage
-
-1. Run the main script to start the fishing bot:
-
-```
-python src/main.py
-```
-
-2. The bot will automatically detect the Rust game window and start the fishing process.
-
-3. The bot will listen for fish bite sounds, analyze the fishing rod movements, and predict the tension to control the fishing minigame.
-
-4. Press 'Esc' to stop the bot.
+3. Press 'Esc' to stop the bot.
 
 ## Data Collection
 
